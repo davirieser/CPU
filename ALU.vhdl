@@ -1,69 +1,32 @@
 
+use library work;
+    use work.CPU_pkg.all;
+
 library ieee;
     use ieee.std_logic_1164.all;
 
 entity ALU is
     port(
-        clk         : in std_logic;
-        -- TODO Busbreite ist nicht das gleiche wie die Anzhal der Befehle
-        -- Muss man nochmal seperat definieren
-        OPCODE      : in    std_logic_vector(NUM_OPCODES);
-        -- TODO Busse sollten nicht gleich breit sein
-        data_bus    : inout std_logic_vector(bus_width - 1 downto 0);
-        ctrl_bus    : inout std_logic_vector(bus_width - 1 downto 0);
-        addr_bus    : inout std_logic_vector(bus_width - 1 downto 0);
-        -- Turn on or off if the CPU is able to access the bus
-        bus_enable : in std_logic
+        clk         : in  std_logic;
+        ctrl        : in  std_logic;
+        operand1    : in  std_logic_vector(oper_width - 1 downto 0);
+        operand2    : in  std_logic_vector(oper_width - 1 downto 0);
+        result      : out std_logic_vector(oper_width - 1 downto 0);
+        status_out  : out std_logic_vector(numStatReg - 1 downto 0)
     );
 end ALU;
 
-architecture structure of ALU is
+architecture behaviour of ALU is
 
-    -- Deklarierung des Register-Typ ( in dem Fall 8 Bit)
-    -- TODO Werte-Bereich ist der Architectur-Breite noch nicht modular angepasst
-    -- Muss man im PAckage nochmal machen
-    type Reg is array of std_logic_vector(arch_width - 1 downto 0) range 0 to 255;
-
-    signal ALU_OUT          : std_logic_vector(arch_width - 1 downto 0);
-
-    -- Register der ALU
-    signal RegA, RegB       : Reg;
+    constant all_zeros  : std_logic_vector(oper_width - 1 downto 0) := (others => '0');
+    constant all_ones   : std_logic_vector(oper_width - 1 downto 0) := (others => '1');
 
     -- Ergebnisleitung fuer logische Verknuepfungen der Register
-    signal REG_AND          : std_logic_vector(arch_width - 1 downto 0);
-    signal REG_OR           : std_logic_vector(arch_width - 1 downto 0);
-    signal REG_XOR          : std_logic_vector(arch_width - 1 downto 0);
-    signal REG_NOT_A        : std_logic_vector(arch_width - 1 downto 0);
-    signal REG_NOT_B        : std_logic_vector(arch_width - 1 downto 0);
-
-    -- Ergbnisleitung und Flagge bei Overflow fuer den Addierer
-    signal ADD_OUT          : Reg;
-    -- Flaggen springen in jetzigen Design auch an wenn das Ergbnis der Addition nicht verwendet wird
-    signal FLAG_OVERFLOW    : std_logic;
-
-    -- Ergbnisleitung und Flagge bei Underflow fuer den Addierer
-    signal SUB_OUT          : Reg;
-    -- Flaggen springen in jetzigen Design auch an wenn das Ergbnis der Subtraktion nicht verwendet wird
-    signal FLAG_UNDERFLOW   : std_logic;
-
-    -- Zwischenleitungen und Flaggen fuer das Schieberegister
-    signal SHIFT_IN         : std_logic_vector(arch_width - 1 downto 0);
-    signal SHIFT_OUT        : std_logic_vector(arch_width - 1 downto 0);
-    -- Flagge um dem Schieberegister zu sagen das es den Input in seine Register laden soll
-    signal FLAG_SHIFT_REG_LOAD  : std_logic;
-    -- Flagge welches dem Schieberegister sagt ob es nach oben oder unten shiften soll (Multiplizieren oder Dividieren)
-    signal FLAG_SHIFT_UP_DOWN   : std_logic;
-
-    component MUX is
-        generic(
-            regWidth        : integer
-        );
-        port(
-            ctrl            : in  std_logic_vector(??? downto 0);
-            inpt            : in  std_logic_vector(??? downto 0); -- Muss man noch irgendwie ausrechnen
-            outp            : out std_logic
-        );
-    end component MUX;
+    signal RES_AND          : std_logic_vector(oper_width - 1 downto 0);
+    signal RES_OR           : std_logic_vector(oper_width - 1 downto 0);
+    signal RES_XOR          : std_logic_vector(oper_width - 1 downto 0);
+    signal RES_NOT_A        : std_logic_vector(oper_width - 1 downto 0);
+    signal RES_NOT_B        : std_logic_vector(oper_width - 1 downto 0);
 
     -- Pseudo-Code : Addierer funktioniert noch nicht weil ich in noch nicht testen konnte
 	component Adder is
@@ -72,11 +35,11 @@ architecture structure of ALU is
 		);
 	    port(
 	        ena             : in  std_logic;
-	        inputA  		: in  std_logic_vector(arch_width - 1 downto 0);
-	        inputB  		: in  std_logic_vector(arch_width - 1 downto 0);
+	        inputA  		: in  std_logic_vector(oper_width - 1 downto 0);
+	        inputB  		: in  std_logic_vector(oper_width - 1 downto 0);
 			carryIn			: in  std_logic;
-	        aOutput 		: out std_logic_vector(arch_width - 1 downto 0);
-	        aCarry          : out std_logic_vector(arch_width - 1 downto 0)
+	        aOutput 		: out std_logic_vector(oper_width - 1 downto 0);
+	        aCarry          : out std_logic_vector(oper_width - 1 downto 0)
 	    );
 	end component Adder;
 
@@ -87,11 +50,11 @@ architecture structure of ALU is
         );
         port(
             ena             : in  std_logic;
-            inputA  		: in  std_logic_vector(arch_width - 1 downto 0);
-            inputB  		: in  std_logic_vector(arch_width - 1 downto 0);
+            inputA  		: in  std_logic_vector(oper_width - 1 downto 0);
+            inputB  		: in  std_logic_vector(oper_width - 1 downto 0);
             carryIn			: in  std_logic;
-            aOutput 		: out std_logic_vector(arch_width - 1 downto 0);
-            aCarry          : out std_logic_vector(arch_width - 1 downto 0)
+            aOutput 		: out std_logic_vector(oper_width - 1 downto 0);
+            aCarry          : out std_logic_vector(oper_width - 1 downto 0)
         );
     end component Subtractor;
 
@@ -115,21 +78,21 @@ architecture structure of ALU is
 
     begin
 
-        REG_AND     <= RegA and RegB;
-        REG_OR      <= RegA or RegB;
-        REG_XOR     <= RegA xor RegB;
-        REG_NOT_A   <= not RegA;
-        REG_NOT_B   <= not RegB;
+        RES_AND     <= operand1 and operand2;
+        RES_OR      <= operand1 or operand2;
+        RES_XOR     <= operand1 xor operand2;
+        RES_NOT_A   <= not operand1;
+        RES_NOT_B   <= not operand2;
 
         adder : entity work.Adder
     		generic map(
-    			regWidth 	=> arch_width
+    			regWidth 	=> oper_width
     		)
     		port map(
                 -- Theoretisch nicht noetig da der Addierer durchgehend arbeitet
     			ena 		=> '1',
-    			inputA 		=> RegA,
-    			inputB 		=> RegB,
+    			inputA 		=> operand1,
+    			inputB 		=> operand2,
                 -- Theoretisch in diesem Fall nicht notwendig
     			carryIn		=> '0',
     			aOutput 	=> ADD_OUT,
@@ -139,13 +102,13 @@ architecture structure of ALU is
 
         subtr : entity work.Adder
             generic map(
-                regWidth 	=> arch_width
+                regWidth 	=> oper_width
             )
             port map(
                 -- Theoretisch nicht noetig da der Addierer durchgehend arbeitet
                 ena 		=> '1',
-                inputA 		=> RegA,
-                inputB 		=> RegB,
+                inputA 		=> operand1,
+                inputB 		=> operand2,
                 -- Theoretisch in diesem Fall nicht notwendig
                 carryIn		=> '0',
                 aOutput 	=> SUB_OUT,
@@ -155,7 +118,7 @@ architecture structure of ALU is
 
         shift : entity work.Schieberegister
             generic map(
-                regWidth 	=> arch_width
+                regWidth 	=> oper_width
             )
             port map(
                 clk		=> clk,
@@ -170,24 +133,24 @@ architecture structure of ALU is
         -- TODO Mit Multiplexer synthetisieren?
         -- Is halt um einiges Code aufwendiger und bringt am Ende auch nix
         case OPCODE(7 downto 4) is
-            WHEN "0000" => ALU_OUT <= REG_AND;
-            WHEN "0000" => ALU_OUT <= REG_OR;
-            WHEN "0000" => ALU_OUT <= REG_XOR;
-            WHEN "0000" => ALU_OUT <= REG_NOT_A;
-            WHEN "0000" => ALU_OUT <= REG_NOT_B;
-            WHEN "0000" => ALU_OUT <= ADD_OUT;
-            WHEN "0000" => ALU_OUT <= SUB_OUT;
-            WHEN "0000" => ALU_OUT <= SHIFT_OUT;
-            WHEN "0000" => ALU_OUT <= XOR_out;
-            -- Auf 'Z' gesetzt damit die ALU den Datenbus nicht durchgehend besetzt
-            WHEN others => ALU_OUT <= (others => 'Z');
+            WHEN "0000" => CPU_OUT <= RES_AND;
+            WHEN "0000" => CPU_OUT <= RES_OR;
+            WHEN "0000" => CPU_OUT <= RES_XOR;
+            WHEN "0000" => CPU_OUT <= RES_NOT_A;
+            WHEN "0000" => CPU_OUT <= RES_NOT_B;
+            WHEN "0000" => CPU_OUT <= ADD_OUT;
+            WHEN "0000" => CPU_OUT <= SUB_OUT;
+            WHEN "0000" => CPU_OUT <= SHIFT_OUT;
+            WHEN "0000" => CPU_OUT <= XOR_out;
+            -- Auf 'Z' gesetzt damit die CPU den Datenbus nicht durchgehend besetzt
+            WHEN others => CPU_OUT <= (others => 'Z');
         end;
 
-        -- => Bus ist bidirektional und sollte nit durchgehend von der ALU besetzt sein
+        -- => Bus ist bidirektional und sollte nit durchgehend von der CPU besetzt sein
         if bus_enable = 1 then
-            data_bus <= ALU_OUT;
+            data_bus <= CPU_OUT;
         else
             data_bus <= (others => 'Z');
         end if;
 
-end structure;
+end behaviour;
