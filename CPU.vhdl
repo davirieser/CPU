@@ -1,4 +1,3 @@
-
 use library work;
     use work.CPU_pkg.all;
 
@@ -7,21 +6,36 @@ library ieee;
 
 entity CPU is
     port(
-        clk         : in std_logic;
-        -- TODO Busbreite ist nicht das gleiche wie die Anzhal der Befehle
-        -- Muss man nochmal seperat definieren
+        clk         : in    std_logic;
         OPCODE      : in    std_logic_vector(NUM_OPCODES);
-        -- TODO Busse sollten nicht gleich breit sein
-        data_bus    : inout std_logic_vector(bus_width - 1 downto 0);
-        ctrl_bus    : inout std_logic_vector(bus_width - 1 downto 0);
-        addr_bus    : inout std_logic_vector(bus_width - 1 downto 0);
+        data_bus    : inout std_logic_vector(data_bus_width - 1 downto 0);
+        ctrl_bus    : inout std_logic_vector(ctrl_bus_width - 1 downto 0);
+        addr_bus    : inout std_logic_vector(addr_bus_width - 1 downto 0);
         -- Turn on or off if the CPU is able to access the bus
-        bus_enable : in std_logic
+        bus_enable  : in    std_logic
     );
 end CPU;
 
 architecture structure of CPU is
 
+    signal data_bus_intern : std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
+    signal ctrl_bus_intern : std_logic_vector(ctrl_bus_width - 1 downto 0) := (others => '0');
+    signal addr_bus_intern : std_logic_vector(addr_bus_width - 1 downto 0) := (others => '0');
 
+    begin
+
+        if bus_enable = '1' then
+
+            data_bus <= data_bus_intern;
+            ctrl_bus <= ctrl_bus_intern;
+            addr_bus <= addr_bus_intern;
+
+        else
+
+            data_bus <= (others => 'Z');
+            ctrl_bus <= (others => 'Z');
+            addr_bus <= (others => 'Z');
+
+        end if;
 
 end structure;

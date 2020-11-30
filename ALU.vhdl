@@ -11,6 +11,7 @@ entity ALU is
         ctrl        : in  std_logic;
         operand1    : in  std_logic_vector(oper_width - 1 downto 0);
         operand2    : in  std_logic_vector(oper_width - 1 downto 0);
+        status_in   : in  std_logic_vector(numStatReg - 1 downto 0);
         result      : out std_logic_vector(oper_width - 1 downto 0);
         status_out  : out std_logic_vector(numStatReg - 1 downto 0)
     );
@@ -133,24 +134,17 @@ architecture behaviour of ALU is
         -- TODO Mit Multiplexer synthetisieren?
         -- Is halt um einiges Code aufwendiger und bringt am Ende auch nix
         case OPCODE(7 downto 4) is
-            WHEN "0000" => CPU_OUT <= RES_AND;
-            WHEN "0000" => CPU_OUT <= RES_OR;
-            WHEN "0000" => CPU_OUT <= RES_XOR;
-            WHEN "0000" => CPU_OUT <= RES_NOT_A;
-            WHEN "0000" => CPU_OUT <= RES_NOT_B;
-            WHEN "0000" => CPU_OUT <= ADD_OUT;
-            WHEN "0000" => CPU_OUT <= SUB_OUT;
-            WHEN "0000" => CPU_OUT <= SHIFT_OUT;
-            WHEN "0000" => CPU_OUT <= XOR_out;
+            WHEN "0000" => result <= RES_AND;
+            WHEN "0000" => result <= RES_OR;
+            WHEN "0000" => result <= RES_XOR;
+            WHEN "0000" => result <= RES_NOT_A;
+            WHEN "0000" => result <= RES_NOT_B;
+            WHEN "0000" => result <= ADD_OUT;
+            WHEN "0000" => result <= SUB_OUT;
+            WHEN "0000" => result <= SHIFT_OUT;
+            WHEN "0000" => result <= XOR_out;
             -- Auf 'Z' gesetzt damit die CPU den Datenbus nicht durchgehend besetzt
-            WHEN others => CPU_OUT <= (others => 'Z');
+            WHEN others => result <= (others => 'Z');
         end;
-
-        -- => Bus ist bidirektional und sollte nit durchgehend von der CPU besetzt sein
-        if bus_enable = 1 then
-            data_bus <= CPU_OUT;
-        else
-            data_bus <= (others => 'Z');
-        end if;
 
 end behaviour;

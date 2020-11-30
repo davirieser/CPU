@@ -12,6 +12,12 @@ package CPU_pkg is
     constant numReg         : integer   := 8;
     constant numRam         : integer   := 4096;
 
+	constant data_bus_width	: integer	:= 8;
+	constant ctrl_bus_width	: integer	:= 8;
+	constant addr_bus_width	: integer	:= 8;
+
+	constant NUM_OPCODES	: integer	:= 256;
+
 	constant numStatReg		: integer	:= 8;
 	-- status[0] = Carry out
 	-- status[1] = Result is Zero
@@ -21,7 +27,6 @@ package CPU_pkg is
 
     -- Deklarierung des Register-Typ ( in dem Fall 8 Bit)
     -- TODO Werte-Bereich ist der Architectur-Breite noch nicht modular angepasst
-    -- Muss man im PAckage nochmal machen
     type Reg is array of std_logic_vector(oper_width - 1 downto 0) range 0 to 255;
 
 end CPU_pkg;

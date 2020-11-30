@@ -54,7 +54,6 @@ architecture behaviour of Adder is
 
         -- First Full-Adder has to be created outside of Generate-Statement
         carry(0)    <= (not(inputA(0) xor inputB(0)) and inputA(0)) or ((inputA(0) xor inputB(0)) and carryIn);
-        aOutput(0)  <= ena and ((inputA(0) xor inputB(0)) xor carryIn);
 
         Adders : for i in 1 to regWidth - 1 generate
 
@@ -63,9 +62,12 @@ architecture behaviour of Adder is
             begin
 
                 z           <= inputA(i) xor inputB(i);
-                carry(i)    <= (not(z) and inputA(i)) or (z and carry(i));
+                carry(i)    <= (not(z) and inputA(i)) or (z and carry(i - 1));
                 aOutput(i)  <= ena and (z xor carry(i-1));
 
         end generate Adders;
+
+		aCarry 		<= carry(regWidth - 1);
+        aOutput(0)  <= ena and ((inputA(0) xor inputB(0)) xor carryIn);
 
 end behaviour;
