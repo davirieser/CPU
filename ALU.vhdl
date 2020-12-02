@@ -29,6 +29,12 @@ architecture behaviour of ALU is
     signal RES_NOT_A        : std_logic_vector(oper_width - 1 downto 0);
     signal RES_NOT_B        : std_logic_vector(oper_width - 1 downto 0);
 
+    signal RES_EQ           : std_logic     := 0;
+    signal RES_EVEN_PARITY  : std_logic     := 0;
+    signal RES_ODD_PARITY   : std_logic     := 0;
+
+    signal TEMP_PARITY      : std_logic_vector(oper_width - 1 downto 0);
+
     -- Pseudo-Code : Addierer funktioniert noch nicht weil ich in noch nicht testen konnte
 	component Adder is
 		generic(
@@ -131,18 +137,29 @@ architecture behaviour of ALU is
             )
         ;
 
+        TEMP_PARITY(0) <= '0';
+
+        Parity : for i in 1 to oper_width - 1 generate
+            TEMP_PARITY(i) <= result(i) xor TEMP_PARITY(i-1);
+        end generate Parity;
+
+        RES_EVEN_PARITY <= TEMP_PARITY(oper_width - 1);
+        RES_ODD_PARITY <= not RES_EVEN_PARITY;
+
         -- TODO Mit Multiplexer synthetisieren?
         -- Is halt um einiges Code aufwendiger und bringt am Ende auch nix
         case OPCODE(7 downto 4) is
             WHEN "0000" => result <= RES_AND;
-            WHEN "0000" => result <= RES_OR;
-            WHEN "0000" => result <= RES_XOR;
-            WHEN "0000" => result <= RES_NOT_A;
-            WHEN "0000" => result <= RES_NOT_B;
-            WHEN "0000" => result <= ADD_OUT;
-            WHEN "0000" => result <= SUB_OUT;
-            WHEN "0000" => result <= SHIFT_OUT;
-            WHEN "0000" => result <= XOR_out;
+            WHEN "0001" => result <= RES_OR;
+            WHEN "0010" => result <= RES_XOR;
+            WHEN "0011" => result <= RES_NOT_A;
+            WHEN "0100" => result <= RES_NOT_B;
+            WHEN "0101" => result <= ADD_OUT;
+            WHEN "0110" => result <= SUB_OUT;
+            WHEN "0111" => result <= SHIFT_OUT;
+            WHEN "1000" => result <= XOR_out;
+            WHEN "1001" => result <= RES_EVEN_PARITY;
+            WHEN "1010" => result <= RES_ODD_PARITY;
             -- Auf 'Z' gesetzt damit die CPU den Datenbus nicht durchgehend besetzt
             WHEN others => result <= (others => 'Z');
         end;
