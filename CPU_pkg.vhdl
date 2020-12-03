@@ -7,16 +7,23 @@ package CPU_pkg is
 
     constant clockFrequency : integer   := 2048 * 10E3;
     constant base_clock     : time      := 1.0 sec / clockFrequency;
-    constant regWidth       : integer   := 16;
-	constant oper_width		: integer	:= 8;
-    constant numReg         : integer   := 8;
-    constant numRam         : integer   := 4096;
+	constant output_delay	: time 		:= base_clock / 10;
 
 	constant data_bus_width	: integer	:= 8;
 	constant ctrl_bus_width	: integer	:= 8;
 	constant addr_bus_width	: integer	:= 8;
 
-	constant NUM_OPCODES	: integer	:= 256;
+    constant regWidth       : integer   := data_bus_width;
+    constant numReg         : integer   := 8;
+    constant numRam         : integer   := 4096;
+
+	constant OPER_LEN		: integer	:= 8;
+	constant OPCODE_LEN		: integer	:= 8;
+	constant CMD_LENGTH		: integer	:= OPER_LEN + OPCODE_LEN;
+	constant NUM_OPCODES	: integer	:= 2 ** OPCODE_LEN;
+
+    -- Deklarierung des Register-Typ ( in dem Fall 8 Bit)
+    type Reg is array of std_logic_vector(OPER_LEN - 1 downto 0) range 0 to ((2 ** OPER_LEN) - 1);
 
 	constant numStatReg		: integer	:= 8;
 	-- status[0] = Carry out
@@ -24,10 +31,7 @@ package CPU_pkg is
 	-- status[2] = Overflow
 	-- status[3] = Even Parity
 	-- status[4] = Odd Parity
-
-    -- Deklarierung des Register-Typ ( in dem Fall 8 Bit)
-    -- TODO Werte-Bereich ist der Architectur-Breite noch nicht modular angepasst
-    type Reg is array of std_logic_vector(oper_width - 1 downto 0) range 0 to 255;
+	-- status[5] = Sign (0 if positive)
 
 end CPU_pkg;
 

@@ -7,12 +7,19 @@ library ieee;
 
 entity ALU is
     port(
+        -- Clock Input
         clk         : in  std_logic;
+        -- Input for OPCODE -> tells the ALU which command to execute
         ctrl        : in  std_logic;
+        -- Inputs for both Operands
         operand1    : in  std_logic_vector(oper_width - 1 downto 0);
         operand2    : in  std_logic_vector(oper_width - 1 downto 0);
-        status_in   : in  std_logic_vector(numStatReg - 1 downto 0);
+        -- Status Input Flags -> See CPU_pkg
+        -- Should the result work as a cyclic buffer
+        cycle_flag  : in std_logic;
+        -- Result of the Operation
         result      : out std_logic_vector(oper_width - 1 downto 0);
+        -- Status Output Flags -> See CPU_pkg
         status_out  : out std_logic_vector(numStatReg - 1 downto 0)
     );
 end ALU;
@@ -137,7 +144,7 @@ architecture behaviour of ALU is
             )
         ;
 
-        TEMP_PARITY(0) <= '0';
+        TEMP_PARITY(0) <= result(0);
 
         Parity : for i in 1 to oper_width - 1 generate
             TEMP_PARITY(i) <= result(i) xor TEMP_PARITY(i-1);
