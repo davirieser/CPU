@@ -22,10 +22,16 @@ package CPU_pkg is
 	constant CMD_LENGTH		: integer	:= OPER_LEN + OPCODE_LEN;
 	constant NUM_OPCODES	: integer	:= 2 ** OPCODE_LEN;
 
-    -- Deklarierung des Register-Typ ( in dem Fall 8 Bit)
-    type Reg is array of std_logic_vector(OPER_LEN - 1 downto 0) range 0 to ((2 ** OPER_LEN) - 1);
+	constant NUM_MICRO_CYC	: integer	:= 3;
+	constant NUM_MICRO_CMD	: integer	:= 2 ** NUM_MICRO_CYC;
 
-	constant numStatReg		: integer	:= 8;
+	-- Start Address of the Program => Start Value of Instruction Register
+	constant PROG_START		: std_logic_vector(addr_bus_width - 1 downto 0) := (others => '0');
+
+    -- Deklarierung des Register-Typ ( in dem Fall 8 Bit)
+    -- type Reg is array of std_logic_vector(OPER_LEN - 1 downto 0) range 0 to ((2 ** OPER_LEN) - 1);
+
+	constant numStatReg		: integer	:= 6;
 	-- status[0] = Carry out
 	-- status[1] = Result is Zero
 	-- status[2] = Overflow

@@ -1,0 +1,10 @@
+v 4
+file . "ALU.vhdl" "87843a51fc5967e71afdff8898040647b497f81c" "20201214203838.247":
+  entity alu at 2( 2) + 0 on 15;
+  architecture behaviour of alu at 27( 895) + 0 on 16;
+file . "CPU_pkg.vhdl" "72d58b28a53074749478618bbc12ca0cb62bf4db" "20201214202536.733":
+  package cpu_pkg at 1( 0) + 0 on 11;
+  package body cpu_pkg at 44( 1458) + 0 on 12;
+file . "CPU.vhdl" "6c439fccb61c82b9a1789e5632abb51f4267f368" "20201214202722.638":
+  entity cpu at 1( 0) + 0 on 13;
+  architecture structure of cpu at 27( 907) + 0 on 14;

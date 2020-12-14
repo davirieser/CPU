@@ -1,4 +1,4 @@
-use library work;
+library work;
     use work.CPU_pkg.all;
 
 library ieee;
@@ -10,7 +10,7 @@ entity CPU is
         -- Clock Input
         clk         : in    std_logic;
         -- Input for OPCODE
-        OPCODE      : in    std_logic_vector(NUM_OPCODES);
+        OPCODE      : in    std_logic_vector(NUM_OPCODES - 1 downto 0);
         -- In/Outputs for Busses
         data_bus    : inout std_logic_vector(data_bus_width - 1 downto 0);
         ctrl_bus    : inout std_logic_vector(ctrl_bus_width - 1 downto 0);
@@ -34,6 +34,9 @@ architecture structure of CPU is
     signal program_counter  : std_logic_vector(addr_bus_width - 1 downto 0) := (others => '0');
     signal status_registers : std_logic_vector(numStatReg - 1 downto 0) := (others => '0');
 
+    signal memory_address_r : std_logic_vector(addr_bus_width - 1 downto 0) := (others => '0');
+    signal memory_data_reg  : std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
+
     component ALU is
         port(
             -- Clock Input
@@ -41,13 +44,12 @@ architecture structure of CPU is
             -- Input for OPCODE -> tells the ALU which command to execute
             ctrl        : in  std_logic;
             -- Inputs for both Operands
-            operand1    : in  std_logic_vector(oper_width - 1 downto 0);
-            operand2    : in  std_logic_vector(oper_width - 1 downto 0);
-            -- Status Input Flags -> See CPU_pkg
+            operand1    : in  std_logic_vector(data_bus_width - 1 downto 0);
+            operand2    : in  std_logic_vector(data_bus_width - 1 downto 0);
             -- Should the result work as a cyclic buffer
             cycle_flag  : in std_logic;
             -- Result of the Operation
-            result      : out std_logic_vector(oper_width - 1 downto 0);
+            result      : out std_logic_vector(data_bus_width - 1 downto 0);
             -- Status Output Flags -> See CPU_pkg
             status_out  : out std_logic_vector(numStatReg - 1 downto 0)
         );
@@ -55,28 +57,34 @@ architecture structure of CPU is
 
     begin
 
-        if work = 1 then
+        p_bus : process(clk)
 
-            if bus_enable = '1' then
+            begin
 
-                data_bus <= data_bus_intern after output_delay;
-                ctrl_bus <= ctrl_bus_intern after output_delay;
-                addr_bus <= addr_bus_intern after output_delay;
+                if (ready = '1') then
 
-            else
+                    if (bus_enable = '1') then
 
-                data_bus <= (others => 'Z') after output_delay;
-                ctrl_bus <= (others => 'Z') after output_delay;
-                addr_bus <= (others => 'Z') after output_delay;
+                        data_bus <= data_bus_intern after output_delay;
+                        ctrl_bus <= ctrl_bus_intern after output_delay;
+                        addr_bus <= addr_bus_intern after output_delay;
 
-            end if;
+                    else
 
-        else
+                        data_bus <= (others => 'Z') after output_delay;
+                        ctrl_bus <= (others => 'Z') after output_delay;
+                        addr_bus <= (others => 'Z') after output_delay;
 
-            data_bus <= (others => 'Z') after output_delay;
-            ctrl_bus <= (others => 'Z') after output_delay;
-            addr_bus <= (others => 'Z') after output_delay;
+                    end if;
 
-        end if;
+                else
+
+                    data_bus <= (others => 'Z') after output_delay;
+                    ctrl_bus <= (others => 'Z') after output_delay;
+                    addr_bus <= (others => 'Z') after output_delay;
+
+                end if;
+
+        end process p_bus;
 
 end structure;
