@@ -31,8 +31,11 @@ architecture behaviour of ALU is
 
     -- Ergebnisleitung fuer logische Verknuepfungen der Register
     signal RES_AND          : std_logic_vector(data_bus_width - 1 downto 0);
+    signal RES_NAND         : std_logic_vector(data_bus_width - 1 downto 0);
     signal RES_OR           : std_logic_vector(data_bus_width - 1 downto 0);
     signal RES_XOR          : std_logic_vector(data_bus_width - 1 downto 0);
+    signal RES_NOR          : std_logic_vector(data_bus_width - 1 downto 0);
+    signal RES_XNOR         : std_logic_vector(data_bus_width - 1 downto 0);
     signal RES_NOT_A        : std_logic_vector(data_bus_width - 1 downto 0);
     signal RES_NOT_B        : std_logic_vector(data_bus_width - 1 downto 0);
 
@@ -95,8 +98,11 @@ architecture behaviour of ALU is
     begin
 
         RES_AND     <= operand1 and operand2;
+        RES_NAND    <= operand1 nand operand2;
         RES_OR      <= operand1 or operand2;
         RES_XOR     <= operand1 xor operand2;
+        RES_NOR     <= operand1 nor operand2;
+        RES_XNOR    <= operand1 xnor operand2;
         RES_NOT_A   <= not operand1;
         RES_NOT_B   <= not operand2;
 
@@ -177,7 +183,7 @@ architecture behaviour of ALU is
                     -- WHEN "0110" => int_result <= SUB_OUT;
                     -- WHEN "0111" => int_result <= SHIFT_OUT;
                     -- WHEN "1000" => int_result <= XOR_out;
-                    WHEN "1001" => int_result <= (data_bus_width - 1 downto 1 => '0') & RES_EVEN_PARITY;
+                    WHEN "1001" => int_result <= (data_bus_width - 1 downto 2 => '0') & RES_ODD_PARITY & RES_EVEN_PARITY;
                     -- Auf 'Z' gesetzt damit die CPU den Datenbus nicht durchgehend besetzt
                     WHEN others => int_result <= (others => 'Z');
                 end case;
