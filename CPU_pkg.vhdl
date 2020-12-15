@@ -17,9 +17,8 @@ package CPU_pkg is
     constant numReg         : integer   := 8;
     constant numRam         : integer   := 4096;
 
-	constant OPER_LEN		: integer	:= 8;
 	constant OPCODE_LEN		: integer	:= 8;
-	constant CMD_LENGTH		: integer	:= OPER_LEN + OPCODE_LEN;
+	constant CMD_LENGTH		: integer	:= data_bus_width + OPCODE_LEN;
 	constant NUM_OPCODES	: integer	:= 2 ** OPCODE_LEN;
 
 	constant NUM_MICRO_CYC	: integer	:= 3;

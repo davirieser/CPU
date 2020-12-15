@@ -1,6 +1,5 @@
 
-library work;
-    use work.CPU_pkg.all;
+use work.CPU_pkg.all;
 
 library ieee;
     use ieee.std_logic_1164.all;
@@ -10,7 +9,7 @@ entity ALU is
         -- Clock Input
         clk         : in  std_logic;
         -- Input for OPCODE -> tells the ALU which command to execute
-        ctrl        : in  std_logic_vector(NUM_OPCODES - 1 downto 0);
+        ctrl        : in  std_logic_vector(OPCODE_LEN - 1 downto 0);
         -- Inputs for both Operands
         operand1    : in  std_logic_vector(data_bus_width - 1 downto 0);
         operand2    : in  std_logic_vector(data_bus_width - 1 downto 0);
@@ -30,22 +29,24 @@ architecture behaviour of ALU is
     constant all_ones   : std_logic_vector(data_bus_width - 1 downto 0) := (others => '1');
 
     -- Ergebnisleitung fuer logische Verknuepfungen der Register
-    signal RES_AND          : std_logic_vector(data_bus_width - 1 downto 0);
-    signal RES_NAND         : std_logic_vector(data_bus_width - 1 downto 0);
-    signal RES_OR           : std_logic_vector(data_bus_width - 1 downto 0);
-    signal RES_XOR          : std_logic_vector(data_bus_width - 1 downto 0);
-    signal RES_NOR          : std_logic_vector(data_bus_width - 1 downto 0);
-    signal RES_XNOR         : std_logic_vector(data_bus_width - 1 downto 0);
-    signal RES_NOT_A        : std_logic_vector(data_bus_width - 1 downto 0);
-    signal RES_NOT_B        : std_logic_vector(data_bus_width - 1 downto 0);
+    signal RES_AND          : std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
+    signal RES_NAND         : std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
+    signal RES_OR           : std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
+    signal RES_XOR          : std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
+    signal RES_NOR          : std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
+    signal RES_XNOR         : std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
+    signal RES_NOT_A        : std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
+    signal RES_NOT_B        : std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
 
     signal RES_EQ           : std_logic     := '0';
     signal RES_EVEN_PARITY  : std_logic     := '0';
     signal RES_ODD_PARITY   : std_logic     := '0';
 
-    signal TEMP_PARITY      : std_logic_vector(data_bus_width - 1 downto 0);
+    signal TEMP_PARITY      : std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
 
-    signal int_result       : std_logic_vector(data_bus_width - 1 downto 0);
+    signal int_result       : std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
+
+    signal status_out_int   : std_logic_vector(numStatReg - 1 downto 0) := (others => '0');
 
     -- Pseudo-Code : Addierer funktioniert noch nicht weil ich in noch nicht testen konnte
 	-- component Adder is
@@ -190,6 +191,7 @@ architecture behaviour of ALU is
 
         end process output_gen;
 
+        status_out <= status_out_int;
         result <= int_result;
 
 end behaviour;

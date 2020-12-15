@@ -12,9 +12,9 @@ entity CPU is
         -- Input for OPCODE
         OPCODE      : in    std_logic_vector(NUM_OPCODES - 1 downto 0);
         -- In/Outputs for Busses
-        data_bus    : inout std_logic_vector(data_bus_width - 1 downto 0);
-        ctrl_bus    : inout std_logic_vector(ctrl_bus_width - 1 downto 0);
-        addr_bus    : inout std_logic_vector(addr_bus_width - 1 downto 0);
+        data_bus    : inout std_logic_vector(data_bus_width - 1 downto 0) := (others => 'Z');
+        ctrl_bus    : inout std_logic_vector(ctrl_bus_width - 1 downto 0) := (others => 'Z');
+        addr_bus    : inout std_logic_vector(addr_bus_width - 1 downto 0) := (others => 'Z');
         -- Ready tells the CPU if it should work
         ready       : in std_logic;
         -- Interrupt-Request Pin -> Indicates that Interrupt has occured
@@ -26,9 +26,9 @@ end CPU;
 
 architecture structure of CPU is
 
-    signal data_bus_intern  : std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
-    signal ctrl_bus_intern  : std_logic_vector(ctrl_bus_width - 1 downto 0) := (others => '0');
-    signal addr_bus_intern  : std_logic_vector(addr_bus_width - 1 downto 0) := (others => '0');
+    signal data_bus_intern  : std_logic_vector(data_bus_width - 1 downto 0) := (others => 'Z');
+    signal ctrl_bus_intern  : std_logic_vector(ctrl_bus_width - 1 downto 0) := (others => 'Z');
+    signal addr_bus_intern  : std_logic_vector(addr_bus_width - 1 downto 0) := (others => 'Z');
 
     signal stack_pointer    : std_logic_vector(addr_bus_width - 1 downto 0) := (others => '0');
     signal program_counter  : std_logic_vector(addr_bus_width - 1 downto 0) := (others => '0');

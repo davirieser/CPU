@@ -1,5 +1,4 @@
-library work;
-    use work.CPU_pkg.all;
+use work.CPU_pkg.all;
 
 library ieee;
 	use ieee.std_logic_1164.all;
@@ -12,9 +11,9 @@ architecture behaviour of tb_CPU is
     signal clk_s    : std_logic         := '0';
     signal reset    : std_logic         := '0';
 
-    signal data_bus_intern  : std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
-    signal ctrl_bus_intern  : std_logic_vector(ctrl_bus_width - 1 downto 0) := (others => '0');
-    signal addr_bus_intern  : std_logic_vector(addr_bus_width - 1 downto 0) := (others => '0');
+    signal data_bus_intern  : std_logic_vector(data_bus_width - 1 downto 0);
+    signal ctrl_bus_intern  : std_logic_vector(ctrl_bus_width - 1 downto 0);
+    signal addr_bus_intern  : std_logic_vector(addr_bus_width - 1 downto 0);
 
     component CPU is
         port(
@@ -22,7 +21,7 @@ architecture behaviour of tb_CPU is
             -- Clock Input
             clk         : in    std_logic;
             -- Input for OPCODE
-            OPCODE      : in    std_logic_vector(NUM_OPCODES - 1 downto 0);
+            OPCODE      : in    std_logic_vector(OPCODE_LEN - 1 downto 0);
             -- In/Outputs for Busses
             data_bus    : inout std_logic_vector(data_bus_width - 1 downto 0);
             ctrl_bus    : inout std_logic_vector(ctrl_bus_width - 1 downto 0);
@@ -52,8 +51,8 @@ architecture behaviour of tb_CPU is
 
         SCK : process
 		begin
-			clk_s <= '0';
-			for clk_cnt_s in 0 to 250 loop
+			clk_s <= '1';
+			for clk_cnt_s in 0 to 10 loop
 				clk_s 		<= not clk_s;
 				wait for base_clock / 2;
 				clk_s 		<= not clk_s;

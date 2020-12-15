@@ -33,24 +33,34 @@ EEPROM \
 MemoryManager \
 ProgCounter \
 Ram \
-tb_CPU
+tb_CPU \
+tb_ALU
 
-all:  $(patsubst %, %.$(SIM_FILE_EXT), $(SOURCE_FILES))
+all: $(sort $(patsubst %.vhdl, %.$(SIM_FILE_EXT), $(wildcard *.vhdl)))
 
 $(TESTBENCH_PREFIX)%.$(SIM_FILE_EXT) : $(TESTBENCH_PREFIX)%.$(SOURCE_FILE_EXT)
-	@$(MAKE) -s check_work
+ifneq ("$(wildcard $(WORK_LIBRARY))","")
 	$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $(TESTBENCH_PREFIX)$*.$(SOURCE_FILE_EXT)
 	$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $(TESTBENCH_PREFIX)$*
 	$(VHDL_COMPILER) $(RUN_OPTIONS) $(TESTBENCH_PREFIX)$* $(SIM_OPTION)=$(DEST_FOLDER)/$@
+else
+	@echo "Work File Missing"
+endif
 
 %$(PACKAGE_SUFFIX).$(SIM_FILE_EXT) : %$(PACKAGE_SUFFIX).$(SOURCE_FILE_EXT)
+ifneq ("$(wildcard $(WORK_LIBRARY))","")
+	@echo "Work File exists"
+else
 	$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $*$(PACKAGE_SUFFIX).$(SOURCE_FILE_EXT)
-	# $(VHDL_COMPILER) $(ELABORATION_OPTIONS) $*$(PACKAGE_SUFFIX)
+endif
 
 %.$(SIM_FILE_EXT) : %.vhdl
-	@$(MAKE) -s check_dir
+ifneq ("$(wildcard $(WORK_LIBRARY))","")
 	$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $*.$(SOURCE_FILE_EXT)
-	$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $*
+	@$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $*
+else
+	@echo "Work File Missing"
+endif
 
 # Check if the Simulation Directory is created, otherwise create it
 .PHONY: check_dir
