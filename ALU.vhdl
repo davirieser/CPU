@@ -42,26 +42,27 @@ architecture behaviour of ALU is
     signal RES_EVEN_PARITY  : std_logic     := '0';
     signal RES_ODD_PARITY   : std_logic     := '0';
 
+    signal ADD_OUT          : std_logic_vector(data_bus_width - 1 downto 0);
+
     signal TEMP_PARITY      : std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
 
     signal int_result       : std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
 
     signal status_out_int   : std_logic_vector(numStatReg - 1 downto 0) := (others => '0');
 
-    -- Pseudo-Code : Addierer funktioniert noch nicht weil ich in noch nicht testen konnte
-	-- component Adder is
-	-- 	generic(
-	-- 		regWidth 		: integer
-	-- 	);
-	--     port(
-	--         ena             : in  std_logic;
-	--         inputA  		: in  std_logic_vector(data_bus_width - 1 downto 0);
-	--         inputB  		: in  std_logic_vector(data_bus_width - 1 downto 0);
-	-- 		carryIn			: in  std_logic;
-	--         aOutput 		: out std_logic_vector(data_bus_width - 1 downto 0);
-	--         aCarry          : out std_logic_vector(data_bus_width - 1 downto 0)
-	--     );
-	-- end component Adder;
+    component Adder is
+		generic(
+			regWidth 		: integer
+		);
+	    port(
+	        ena             : in  std_logic;
+	        inputA  		: in  std_logic_vector(data_bus_width - 1 downto 0);
+	        inputB  		: in  std_logic_vector(data_bus_width - 1 downto 0);
+			carryIn			: in  std_logic;
+	        aOutput 		: out std_logic_vector(data_bus_width - 1 downto 0);
+	        aCarry          : out std_logic_vector(data_bus_width - 1 downto 0)
+	    );
+	end component Adder;
     --
     -- -- TODO Subtrahierer funktioniert noch nicht annaehernd
     -- component Subtractor is
@@ -107,22 +108,28 @@ architecture behaviour of ALU is
         RES_NOT_A   <= not operand1;
         RES_NOT_B   <= not operand2;
 
-        -- adder : entity work.Adder
-    	-- 	generic map(
-    	-- 		regWidth 	=> data_bus_width
-    	-- 	)
-    	-- 	port map(
-        --         -- Theoretisch nicht noetig da der Addierer durchgehend arbeitet
-    	-- 		ena 		=> '1',
-    	-- 		inputA 		=> operand1,
-    	-- 		inputB 		=> operand2,
-        --         -- Theoretisch in diesem Fall nicht notwendig
-    	-- 		carryIn		=> '0',
-    	-- 		aOutput 	=> ADD_OUT,
-    	-- 		aCarry 	    => FLAG_OVERFLOW
-        --     )
-    	-- ;
-        --
+        TEMP_PARITY(0) <= int_result(0);
+
+        Parity : for i in 1 to data_bus_width - 1 generate
+            TEMP_PARITY(i) <= int_result(i) xor TEMP_PARITY(i-1);
+        end generate Parity;
+
+        int_adder : entity work.Adder
+    		generic map(
+    			regWidth 	=> data_bus_width
+    		)
+    		port map(
+                -- Theoretisch nicht noetig da der Addierer durchgehend arbeitet
+    			ena 		=> '1',
+    			inputA 		=> operand1,
+    			inputB 		=> operand2,
+                -- Theoretisch in diesem Fall nicht notwendig
+    			carryIn		=> '0',
+    			aOutput 	=> ADD_OUT,
+    			aCarry 	    => status_out_int(0)
+            )
+    	;
+
         -- subtr : entity work.Adder
         --     generic map(
         --         regWidth 	=> data_bus_width
@@ -157,14 +164,13 @@ architecture behaviour of ALU is
 
             begin
 
-                TEMP_PARITY(0) <= int_result(0);
-
-                Parity : for i in 1 to data_bus_width - 1 loop
-                    TEMP_PARITY(i) <= int_result(i) xor TEMP_PARITY(i-1);
-                end loop Parity;
-
-                RES_EVEN_PARITY <= TEMP_PARITY(data_bus_width - 1);
-                RES_ODD_PARITY <= not RES_EVEN_PARITY;
+                if(int_result(0) = 'Z') then
+                    RES_EVEN_PARITY <= '1';
+                    RES_ODD_PARITY <= '0';
+                else
+                    RES_EVEN_PARITY <= TEMP_PARITY(data_bus_width - 1);
+                    RES_ODD_PARITY <= not RES_EVEN_PARITY;
+                end if;
 
         end process parity_gen;
 
@@ -175,12 +181,12 @@ architecture behaviour of ALU is
                 -- TODO Mit Multiplexer synthetisieren?
                 -- Is halt um einiges Code aufwendiger und bringt am Ende auch nix
                 case ctrl(7 downto 4) is
-                    WHEN "0000" => int_result <= RES_AND;
-                    WHEN "0001" => int_result <= RES_OR;
-                    WHEN "0010" => int_result <= RES_XOR;
-                    WHEN "0011" => int_result <= RES_NOT_A;
-                    WHEN "0100" => int_result <= RES_NOT_B;
-                    -- WHEN "0101" => int_result <= ADD_OUT;
+                    -- WHEN "0000" => int_result <= RES_AND;
+                    -- WHEN "0001" => int_result <= RES_OR;
+                    -- WHEN "0010" => int_result <= RES_XOR;
+                    -- WHEN "0011" => int_result <= RES_NOT_A;
+                    -- WHEN "0100" => int_result <= RES_NOT_B;
+                    WHEN "0101" => int_result <= ADD_OUT;
                     -- WHEN "0110" => int_result <= SUB_OUT;
                     -- WHEN "0111" => int_result <= SHIFT_OUT;
                     -- WHEN "1000" => int_result <= XOR_out;

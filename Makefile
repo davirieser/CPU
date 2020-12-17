@@ -91,9 +91,5 @@ $(TESTBENCH_PREFIX)% : $(TESTBENCH_PREFIX)%.$(SOURCE_FILE_EXT)
 
 .PHONY: clean
 clean:
-	-rm -f *.$(SIM_FILE_EXT)
-	-rm -f $(DEST_FOLDER)/*.$(SIM_FILE_EXT1)
-	-rm -f $(DEST_FOLDER)/*.$(SIM_FILE_EXT2)
 	-rm -f $(WORK_LIBRARY)
-	-rm -f $(DEST_FOLDER)/*.$(WORK_LIBRARY)
-	-rm -f $(DEST_FOLDER)/*.$(WORK_LIBRARY)
+	-rm -f $(DEST_FOLDER)/*.$(SIM_FILE_EXT)

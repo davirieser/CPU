@@ -2,6 +2,7 @@ use work.CPU_pkg.all;
 
 library ieee;
 	use ieee.std_logic_1164.all;
+	use ieee.numeric_std.all;
 
 entity tb_ALU is
 end tb_ALU;
@@ -11,8 +12,11 @@ architecture behaviour of tb_ALU is
     signal clk_s    : std_logic         := '0';
     signal reset    : std_logic         := '0';
 
-    signal result_int   : std_logic_vector(data_bus_width - 1 downto 0);
-    signal stat_out_int : std_logic_vector(numStatReg - 1 downto 0);
+    signal result_int   : std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
+    signal stat_out_int : std_logic_vector(numStatReg - 1 downto 0) := (others => '0');
+
+	signal sOperand1	: std_logic_vector(data_bus_width - 1 downto 0);
+	signal sOperand2	: std_logic_vector(data_bus_width - 1 downto 0);
 
     component ALU is
         port(
@@ -38,24 +42,37 @@ architecture behaviour of tb_ALU is
         uut : entity work.ALU port map(
                                     clk	    	=> clk_s,
                                     ctrl        => (others => '0'),
-                                    operand1    => (others => '0'),
-                                    operand2    => (others => '0'),
+                                    operand1    => sOperand1,
+                                    operand2    => sOperand2,
                                     cycle_flag  => '0',
                                     result      => result_int,
                                     status_out  => stat_out_int
                                 );
 
-        SCK : process
-		begin
-			clk_s <= '1';
-			for clk_cnt_s in 0 to 10 loop
-				clk_s 		<= not clk_s;
-				wait for base_clock / 2;
-				clk_s 		<= not clk_s;
-				wait for base_clock / 2;
-			end loop;
-			wait;
-		end process SCK;
+		Signal_gen : process
 
+			variable sTemp 		: std_logic_vector((2 * data_bus_width) - 1 downto 0) := (others => '0');
+
+			begin
+
+				sOperand1 <= sTemp(data_bus_width - 1 downto 0);
+				sOperand2 <= sTemp((2 * data_bus_width) - 1 downto data_bus_width);
+
+				wait for base_clock;
+
+                for sCount in 0 to (3*data_bus_width) loop
+
+					sTemp := std_logic_vector( unsigned(sTemp) + 16 );
+
+					sOperand1 <= sTemp(data_bus_width - 1 downto 0);
+					sOperand2 <= sTemp((2 * data_bus_width) - 1 downto data_bus_width);
+
+                    wait for base_clock;
+
+                end loop;
+
+				wait;
+
+		end process Signal_gen;
 
 end behaviour;

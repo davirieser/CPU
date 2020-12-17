@@ -4,12 +4,11 @@ library     ieee;
 
 entity MUX is
     generic(
-        input_width     : integer := 8;
         ctrl_width      : integer := 3
     );
     port(
-        ctrl    : in std_logic_vector(ctrl_width downto 0);
-        inp     : in std_logic_vector(input_width downto 0);
+        ctrl    : in std_logic_vector((ctrl_width - 1) downto 0);
+        inp     : in std_logic_vector(((2**ctrl_width) - 1) downto 0);
         outp    : out std_logic
     );
 end MUX;
