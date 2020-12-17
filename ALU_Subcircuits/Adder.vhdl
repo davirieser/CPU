@@ -42,7 +42,7 @@ entity Adder is
         inputA  		: in  std_logic_vector(regWidth - 1 downto 0);
         inputB  		: in  std_logic_vector(regWidth - 1 downto 0);
         aOutput   		: out std_logic_vector(regWidth - 1 downto 0);
-        aCarry          : out std_logic_vector(regWidth - 1 downto 0)
+        aCarry          : out std_logic
     );
 end Adder;
 
@@ -67,7 +67,7 @@ architecture behaviour of Adder is
 
         end generate Adders;
 
-		aCarry 		<= carry(regWidth - 1);
+		aCarry		<= carry(regWidth - 1);
         aOutput(0)  <= ena and ((inputA(0) xor inputB(0)) xor carryIn);
 
 end behaviour;

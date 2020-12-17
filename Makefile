@@ -4,76 +4,93 @@ ANALYSIS_OPTIONS=-a
 ELABORATION_OPTIONS=-e
 RUN_OPTIONS=-r
 
+SIM_FILE_EXT1=ghw
+SIM_FILE_EXT2=vcd
+
 SOURCE_FILE_EXT=vhdl
-SIM_FILE_EXT=vcd
+SIM_FILE_EXT=$(SIM_FILE_EXT1)
 PACKAGE_SUFFIX=_pkg
 TESTBENCH_PREFIX=tb_
-DEST_FOLDER=sim
+DEST_FOLDER=$(abspath sim)
 WORK_LIBRARY=work-obj93.cf
 
-ifeq ($(SIM_FILE_EXT),ghw)
-	SIM_OPTION:=--wave
+ifeq ($(SIM_FILE_EXT),$(SIM_FILE_EXT1))
+SIM_OPTION:=--wave
+else ifeq ($(SIM_FILE_EXT),$(SIM_FILE_EXT2))
+SIM_OPTION:=--vcd
 else
-	SIM_OPTION:=--vcd
+SIM_OPTION:=--vcd
+SIM_FILE_EXT:=vcd
 endif
 
-# Assign SIM_OPTION lazily in case the If-Conditional above doesn't work
-SIM_OPTION?=--wave
-
-CPU_FILES=$(filter-out tb_% %_pkg,$(SOURCE_FILES))
-PKG_FILES=$(filter %_pkg,$(SOURCE_FILES))
-TB_FILES=$(filter tb_%,$(SOURCE_FILES))
+# CPU_FILES=$(filter-out tb_% %_pkg,$(SOURCE_FILES))
+# PKG_FILES=$(filter %_pkg,$(SOURCE_FILES))
+# TB_FILES=$(filter tb_%,$(SOURCE_FILES))
 
 SUB_DIRS=ALU_Subcircuits CPU_Subcircuits
 
-SOURCE_FILES=CPU_pkg \
-ALU \
-CPU \
-EEPROM \
-MemoryManager \
-ProgCounter \
-Ram \
-tb_CPU \
-tb_ALU
+VPATH=ALU_Subcircuits:CPU_Subcircuits
 
-all: $(sort $(patsubst %.vhdl, %.$(SIM_FILE_EXT), $(wildcard *.vhdl)))
+# ------------------------------------------------------------------------------
+# First analyze all Packages then all the other files in all directories
 
-$(TESTBENCH_PREFIX)%.$(SIM_FILE_EXT) : $(TESTBENCH_PREFIX)%.$(SOURCE_FILE_EXT)
-ifneq ("$(wildcard $(WORK_LIBRARY))","")
-	$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $(TESTBENCH_PREFIX)$*.$(SOURCE_FILE_EXT)
-	$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $(TESTBENCH_PREFIX)$*
-	$(VHDL_COMPILER) $(RUN_OPTIONS) $(TESTBENCH_PREFIX)$* $(SIM_OPTION)=$(DEST_FOLDER)/$@
+all: \
+	$(patsubst %.vhdl, %, $(wildcard */*_pkg.vhdl) $(wildcard *_pkg.vhdl)) \
+	$(patsubst %.vhdl, %, $(filter-out tb_% %_pkg,$(wildcard */*.vhdl) $(wildcard *.vhdl)))
+
+# ------------------------------------------------------------------------------
+# Analyze Packages
+
+test:
+ifneq ("$(wildcard ALU_Subcircuits/tb_Adder.vhdl)","")
+	@echo "$(wildcard ALU_Subcircuits/tb_Adder.vhdl)"
 else
-	@echo "Work File Missing"
+	@echo "Not found"
 endif
 
-%$(PACKAGE_SUFFIX).$(SIM_FILE_EXT) : %$(PACKAGE_SUFFIX).$(SOURCE_FILE_EXT)
+%$(PACKAGE_SUFFIX) : %$(PACKAGE_SUFFIX).$(SOURCE_FILE_EXT)
 ifneq ("$(wildcard $(WORK_LIBRARY))","")
-	@echo "Work File exists"
+	@echo "Work File already exists"
 else
-	$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $*$(PACKAGE_SUFFIX).$(SOURCE_FILE_EXT)
+	@echo "Analyzing Package-File $*$(PACKAGE_SUFFIX).$(SOURCE_FILE_EXT)"
+	@$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $*$(PACKAGE_SUFFIX).$(SOURCE_FILE_EXT)
 endif
 
-%.$(SIM_FILE_EXT) : %.vhdl
-ifneq ("$(wildcard $(WORK_LIBRARY))","")
-	$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $*.$(SOURCE_FILE_EXT)
-	@$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $*
-else
-	@echo "Work File Missing"
-endif
+# ------------------------------------------------------------------------------
+# Ignore Testbenches => Will be called by their respective Test-File
 
-# Check if the Simulation Directory is created, otherwise create it
-.PHONY: check_dir
-check_sim_dir:
-	@[ -d $(DEST_FOLDER) ] || mkdir $(DEST_FOLDER)
+$(TESTBENCH_PREFIX)% : $(TESTBENCH_PREFIX)%.$(SOURCE_FILE_EXT)
+	@echo "Ignoring Testbench $*"
 
-# Check if the Work-Library exists
-.PHONY: check_work
-check_work:
-	@[ -f $(WORK_LIBRARY) ] || false
+# ------------------------------------------------------------------------------
+# Rule for VHDL-Files which also have a Testbench
+
+% : %.$(SOURCE_FILE_EXT) $(TESTBENCH_PREFIX)%.$(SOURCE_FILE_EXT)
+	@echo "Analyzing and elobarating $*"
+	@$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $*.$(SOURCE_FILE_EXT)
+	@$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $(notdir $*)
+	@$(eval TESTBENCH_NAME=$(dir $*)$(TESTBENCH_PREFIX)$(notdir $*))
+	@echo "Running Simulation for $*"
+	@$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $(TESTBENCH_NAME).$(SOURCE_FILE_EXT)
+	@$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $(notdir $(TESTBENCH_NAME))
+	@[ -d $(DEST_FOLDER) ] || false
+	$(VHDL_COMPILER) $(RUN_OPTIONS) $(notdir $(TESTBENCH_NAME)) \
+		$(SIM_OPTION)=$(DEST_FOLDER)/$(notdir $*).$(SIM_FILE_EXT)
+
+# ------------------------------------------------------------------------------
+# General Rule for all VHDL-Files
+
+% : %.$(SOURCE_FILE_EXT)
+	@echo "Analyzing and elobarating $*"
+	@$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $*.$(SOURCE_FILE_EXT)
+	@$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $(notdir $*)
+
+# ------------------------------------------------------------------------------
+# Clean Command
 
 .PHONY: clean
 clean:
 	-rm -f *.$(SIM_FILE_EXT)
-	-rm -f $(DEST_FOLDER)/*.$(SIM_FILE_EXT)
+	-rm -f $(DEST_FOLDER)/*.$(SIM_FILE_EXT1)
+	-rm -f $(DEST_FOLDER)/*.$(SIM_FILE_EXT2)
 	-rm -f $(WORK_LIBRARY)

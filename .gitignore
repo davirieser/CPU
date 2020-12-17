@@ -8,3 +8,4 @@
 !*.vhd
 !*.vhdl
 !.gitignore
+!Makefile

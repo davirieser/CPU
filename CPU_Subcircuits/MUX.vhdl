@@ -1,9 +1,10 @@
 library     ieee;
 	use 	ieee.std_logic_1164.all;
+	use 	ieee.numeric_std.all;
 
 entity MUX is
     generic(
-        input_width     : integer := 8,
+        input_width     : integer := 8;
         ctrl_width      : integer := 3
     );
     port(
@@ -13,28 +14,10 @@ entity MUX is
     );
 end MUX;
 
--- architecture structure of MUX is
---
---     -- MUX could be more effective but would have to be hard-coded
---
---     signal conn : std_logic_vector(input_width - 1 downto 0);
---
---     begin
---
---         conn(0) <= (ctrl and inp(0)) or (not(ctrl) and inp(1))
---
---         gen : for i in 1 to (input_width - 1) generate
---
---             conn(i) <=
---
---         end generate gen;
---
--- end structure;
-
 architecture behaviour of MUX is
 
     begin
 
-        outp <= inp(to_unsigned(ctrl));
+        outp <= inp(to_integer(unsigned(ctrl)));
 
 end behaviour;
