@@ -12,6 +12,7 @@ SIM_FILE_EXT=$(SIM_FILE_EXT1)
 PACKAGE_SUFFIX=_pkg
 TESTBENCH_PREFIX=tb_
 DEST_FOLDER=$(abspath sim)
+WORKING_FOLDER=$(abspath .)
 WORK_LIBRARY=work-obj93.cf
 
 ifeq ($(SIM_FILE_EXT),$(SIM_FILE_EXT1))
@@ -23,10 +24,6 @@ SIM_OPTION:=--vcd
 SIM_FILE_EXT:=vcd
 endif
 
-# CPU_FILES=$(filter-out tb_% %_pkg,$(SOURCE_FILES))
-# PKG_FILES=$(filter %_pkg,$(SOURCE_FILES))
-# TB_FILES=$(filter tb_%,$(SOURCE_FILES))
-
 SUB_DIRS=ALU_Subcircuits CPU_Subcircuits
 
 VPATH=ALU_Subcircuits:CPU_Subcircuits
@@ -37,16 +34,20 @@ VPATH=ALU_Subcircuits:CPU_Subcircuits
 all: \
 	$(patsubst %.vhdl, %, $(wildcard */*_pkg.vhdl) $(wildcard *_pkg.vhdl)) \
 	$(patsubst %.vhdl, %, $(filter-out tb_% %_pkg,$(wildcard */*.vhdl) $(wildcard *.vhdl)))
+	@echo "Working in $(WORKING_FOLDER)"
+
+$(SIM_FILE_EXT1):
+	$(eval SIM_FILE_EXT=$(SIM_FILE_EXT1))
+	$(eval SIM_OPTION:=--wave)
+	$(MAKE) all
+
+$(SIM_FILE_EXT2):
+	$(eval SIM_FILE_EXT=$(SIM_FILE_EXT2))
+	$(eval SIM_OPTION:=--vcd)
+	$(MAKE) all
 
 # ------------------------------------------------------------------------------
 # Analyze Packages
-
-test:
-ifneq ("$(wildcard ALU_Subcircuits/tb_Adder.vhdl)","")
-	@echo "$(wildcard ALU_Subcircuits/tb_Adder.vhdl)"
-else
-	@echo "Not found"
-endif
 
 %$(PACKAGE_SUFFIX) : %$(PACKAGE_SUFFIX).$(SOURCE_FILE_EXT)
 ifneq ("$(wildcard $(WORK_LIBRARY))","")
@@ -75,7 +76,7 @@ $(TESTBENCH_PREFIX)% : $(TESTBENCH_PREFIX)%.$(SOURCE_FILE_EXT)
 	@$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $(notdir $(TESTBENCH_NAME))
 	@[ -d $(DEST_FOLDER) ] || false
 	$(VHDL_COMPILER) $(RUN_OPTIONS) $(notdir $(TESTBENCH_NAME)) \
-		$(SIM_OPTION)=$(DEST_FOLDER)/$(notdir $*).$(SIM_FILE_EXT)
+		$(SIM_OPTION)=$(subst $(WORKING_FOLDER)/,,$(DEST_FOLDER)/$(notdir $*).$(SIM_FILE_EXT))
 
 # ------------------------------------------------------------------------------
 # General Rule for all VHDL-Files
@@ -94,3 +95,5 @@ clean:
 	-rm -f $(DEST_FOLDER)/*.$(SIM_FILE_EXT1)
 	-rm -f $(DEST_FOLDER)/*.$(SIM_FILE_EXT2)
 	-rm -f $(WORK_LIBRARY)
+	-rm -f $(DEST_FOLDER)/*.$(WORK_LIBRARY)
+	-rm -f $(DEST_FOLDER)/*.$(WORK_LIBRARY)

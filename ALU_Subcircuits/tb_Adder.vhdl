@@ -1,11 +1,81 @@
 library ieee;
 	use ieee.std_logic_1164.all;
+	use ieee.numeric_std.all;
 
 entity tb_Adder is
 end tb_Adder;
 
 architecture behaviour of tb_Adder is
 
+	constant regWidth 	: integer := 3;
+
+	signal sEna			: std_logic := '0';
+	signal sCarryIn 	: std_logic := '0';
+	signal sInputA 		: std_logic_vector(regWidth - 1 downto 0) := (others => '0');
+	signal sInputB 		: std_logic_vector(regWidth - 1 downto 0) := (others => '0');
+	signal sOutput 		: std_logic_vector(regWidth - 1 downto 0);
+	signal sCarry 		: std_logic;
+
+
+	component Adder is
+		generic(
+			regWidth 		: integer
+		);
+	    port(
+	        ena             : in  std_logic;
+	        carryIn         : in  std_logic;
+	        inputA  		: in  std_logic_vector(regWidth - 1 downto 0);
+	        inputB  		: in  std_logic_vector(regWidth - 1 downto 0);
+	        aOutput   		: out std_logic_vector(regWidth - 1 downto 0);
+	        aCarry          : out std_logic
+	    );
+	end component Adder;
+
     begin
+
+		uut : entity work.Adder
+		generic map(
+			regWidth  => regWidth
+		)
+		port map(
+			ena => sEna,
+			carryIn => sCarryIn,
+			inputA => sInputA,
+			inputB => sInputB,
+			aOutput => sOutput,
+			aCarry => sCarry
+		);
+
+		Signal_gen : process
+
+			variable sTemp 		: std_logic_vector((2 * regWidth) - 1 downto 0) := (others => '0');
+
+			begin
+
+				wait for 10 ns;
+
+				sEna <= '1';
+
+				wait for 10 ns;
+
+				sInputA <= sTemp(regWidth - 1 downto 0);
+				sInputB <= sTemp((2 * regWidth) - 1 downto regWidth);
+
+				wait for 10 ns;
+
+                for sCount in 0 to (2**(2*regWidth)) loop
+
+					sTemp := std_logic_vector( unsigned(sTemp) + 1 );
+
+					sInputA <= sTemp(regWidth - 1 downto 0);
+					sInputB <= sTemp((2 * regWidth) - 1 downto regWidth);
+
+                    wait for 10 ns;
+
+                end loop;
+
+				wait;
+
+		end process Signal_gen;
 
 end behaviour;
