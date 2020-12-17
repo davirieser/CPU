@@ -7,12 +7,14 @@ end tb_MUX;
 
 architecture behaviour of tb_MUX is
 
-    constant ctrl_width_s   : integer := 2;
-    constant input_width_s  : integer := 4;
+    constant ctrl_width_s   : integer := 3;
+    constant input_width_s  : integer := 8;
+    constant input_width_v  : integer := 5;
 
     signal int_ctrl     : std_logic_vector(ctrl_width_s - 1 downto 0) := (others => '0');
     signal int_input    : std_logic_vector(input_width_s - 1 downto 0) := (others => '0');
-    signal int_out      : std_logic;
+    signal int_out1     : std_logic;
+    signal int_out2     : std_logic;
 
     component MUX is
         generic(
@@ -25,6 +27,18 @@ architecture behaviour of tb_MUX is
         );
     end component MUX;
 
+    component MUX_VAR is
+        generic(
+            ctrl_width      : integer := 3;
+    		input_width		: integer := 7
+        );
+        port(
+            ctrl    : in std_logic_vector(ctrl_width - 1 downto 0);
+            inp     : in std_logic_vector(input_width - 1 downto 0);
+            outp    : out std_logic
+        );
+    end component MUX_VAR;
+
     begin
 
         uut : entity work.MUX generic map(
@@ -33,7 +47,17 @@ architecture behaviour of tb_MUX is
         port map(
             ctrl => int_ctrl,
             inp => int_input,
-            outp => int_out
+            outp => int_out1
+        );
+
+        uut2 : entity work.MUX_VAR generic map(
+            ctrl_width => ctrl_width_s,
+            input_width => input_width_v
+        )
+        port map(
+            ctrl => int_ctrl,
+            inp => int_input(input_width_v - 1 downto 0),
+            outp => int_out2
         );
 
         Signal_gen : process
