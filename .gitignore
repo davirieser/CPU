@@ -7,5 +7,5 @@
 # Whitelist all File-Types which are interesting to us
 !*.vhd
 !*.vhdl
-!.gitignore
 !Makefile
+!.gitignore
