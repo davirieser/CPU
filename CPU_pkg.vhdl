@@ -15,7 +15,12 @@ package CPU_pkg is
 
     constant regWidth       : integer   := data_bus_width;
     constant numReg         : integer   := 8;
-    constant numRam         : integer   := 4096;
+
+	-- ROM SIZE will be multiplied by the data_bus_width
+	constant ROM_ADDR_BITS	: integer 	:= 10;
+	constant ROM_SIZE		: integer 	:= 1024;
+	constant RAM_ADDR_BITS	: integer 	:= 12;
+    constant RAM_SIZE       : integer   := 4096;
 
 	constant OPCODE_LEN		: integer	:= 8;
 	constant CMD_LENGTH		: integer	:= data_bus_width + OPCODE_LEN;
@@ -23,6 +28,9 @@ package CPU_pkg is
 
 	constant NUM_MICRO_CYC	: integer	:= 3;
 	constant NUM_MICRO_CMD	: integer	:= 2 ** NUM_MICRO_CYC;
+
+	constant INT_PRIO_BITS	: integer	:= 3;
+	constant INT_PRIORITIES	: integer	:= 2 ** INT_PRIO_BITS;
 
 	-- Start Address of the Program => Start Value of Instruction Register
 	constant PROG_START		: std_logic_vector(addr_bus_width - 1 downto 0) := (others => '0');
