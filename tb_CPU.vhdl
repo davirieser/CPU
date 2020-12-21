@@ -21,7 +21,7 @@ architecture behaviour of tb_CPU is
             -- Clock Input
             clk         : in    std_logic;
             -- Input for OPCODE
-            OPCODE      : in    std_logic_vector(OPCODE_LEN - 1 downto 0);
+            OPCODE      : in    std_logic_vector(ctrl_bus_width - 1 downto 0);
             -- In/Outputs for Busses
             data_bus    : inout std_logic_vector(data_bus_width - 1 downto 0);
             ctrl_bus    : inout std_logic_vector(ctrl_bus_width - 1 downto 0);

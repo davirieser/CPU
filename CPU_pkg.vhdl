@@ -16,18 +16,25 @@ package CPU_pkg is
     constant regWidth       : integer   := data_bus_width;
     constant numReg         : integer   := 8;
 
-	-- ROM SIZE will be multiplied by the data_bus_width
+	-- ROM_SIZE and RAM_SIZE will be multiplied by data_bus_width
 	constant ROM_ADDR_BITS	: integer 	:= 10;
-	constant ROM_SIZE		: integer 	:= 1024;
+	constant ROM_SIZE		: integer 	:= 2 ** ROM_ADDR_BITS;
 	constant RAM_ADDR_BITS	: integer 	:= 12;
-    constant RAM_SIZE       : integer   := 4096;
+    constant RAM_SIZE       : integer   := 2 ** RAM_ADDR_BITS;
 
-	constant OPCODE_LEN		: integer	:= 8;
-	constant CMD_LENGTH		: integer	:= data_bus_width + OPCODE_LEN;
-	constant NUM_OPCODES	: integer	:= 2 ** OPCODE_LEN;
+	-- Number of Bits for an OPCODE
+	constant OPCODE_BITS	: integer	:= 8;
+	-- Number of Bits in a Command for the Operators
+	constant OPER_BITS		: integer 	:= 2 * data_bus_width;
+	-- Number of OPCODES
+	constant NUM_OPCODES	: integer	:= 2 ** OPCODE_BITS;
+	-- Actual Length of the Command including OPCODE and Operators
+	constant CMD_LENGTH		: integer	:= data_bus_width + OPER_BITS;
 
 	constant NUM_MICRO_CYC	: integer	:= 3;
 	constant NUM_MICRO_CMD	: integer	:= 2 ** NUM_MICRO_CYC;
+
+	constant NUM_INTERRUPTS	: integer 	:= 6;
 
 	constant INT_PRIO_BITS	: integer	:= 3;
 	constant INT_PRIORITIES	: integer	:= 2 ** INT_PRIO_BITS;

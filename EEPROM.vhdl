@@ -3,6 +3,7 @@ library work;
 
 library ieee;
     use ieee.std_logic_1164.all;
+    use ieee.numeric_std.all;
 
 entity EEPROM is
     port(
@@ -19,9 +20,9 @@ end EEPROM;
 
 architecture behaviour of EEPROM is
 
-    type MEMORY is array(0 to ROM_SIZE) of std_logic_vector(data_bus_width - 1 downto 0);
+    type MEMORY_TYPE is array(0 to ROM_SIZE) of std_logic_vector(data_bus_width - 1 downto 0);
 
-    signal mem : MEMORY := (others => (others => '0'));
+    signal memory : MEMORY_TYPE := (others => (others => '0'));
 
     begin
 
@@ -32,7 +33,7 @@ architecture behaviour of EEPROM is
             begin
 
                 if ena = '1' then
-                    data_out <= mem(to_integer(unsigned(addr_in)));
+                    data_out <= memory(to_integer(unsigned(addr_in)));
                 else
                     data_out <= (others => 'Z');
                 end if;

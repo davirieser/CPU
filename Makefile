@@ -1,5 +1,6 @@
 
 VHDL_COMPILER=ghdl
+WAVE_VIEWER=gtkwave
 ANALYSIS_OPTIONS=-a
 ELABORATION_OPTIONS=-e
 RUN_OPTIONS=-r
@@ -22,6 +23,12 @@ SIM_OPTION:=--vcd
 else
 SIM_OPTION:=--wave
 SIM_EXT:=ghw
+endif
+
+ifdef SIM
+SIMULATE:=1
+else
+SIMULATE:=0
 endif
 
 # ------------------------------------------------------------------------------
@@ -62,11 +69,15 @@ $(TESTBENCH_PREFIX)% : $(TESTBENCH_PREFIX)%.$(SOURCE_FILE_EXT)
 	@[ -d $(DEST_FOLDER) ] || false
 	$(VHDL_COMPILER) $(RUN_OPTIONS) $(notdir $(TESTBENCH_NAME)) \
 		$(SIM_OPTION)=$(subst $(WORKING_FOLDER)/,,$(DEST_FOLDER)/$(notdir $*).$(SIM_EXT))
+ifeq ($(SIMULATE),1)
+	$(WAVE_VIEWER) $(subst $(WORKING_FOLDER)/,,$(DEST_FOLDER)/$(notdir $*).$(SIM_EXT))
+endif
 
 # ------------------------------------------------------------------------------
 # General Rule for all VHDL-Files
 
 % : %.$(SOURCE_FILE_EXT)
+	@echo $(SIMULATE)
 	@echo "Analyzing and elobarating $*"
 	@$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $*.$(SOURCE_FILE_EXT)
 	@$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $(notdir $*)

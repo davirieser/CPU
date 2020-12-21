@@ -23,7 +23,7 @@ architecture behaviour of tb_ALU is
             -- Clock Input
             clk         : in  std_logic;
             -- Input for OPCODE -> tells the ALU which command to execute
-            ctrl        : in  std_logic_vector(OPCODE_LEN - 1 downto 0);
+            ctrl        : in  std_logic_vector(ctrl_bus_width - 1 downto 0);
             -- Inputs for both Operands
             operand1    : in  std_logic_vector(data_bus_width - 1 downto 0);
             operand2    : in  std_logic_vector(data_bus_width - 1 downto 0);
