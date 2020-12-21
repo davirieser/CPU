@@ -33,7 +33,7 @@ architecture behaviour of EEPROM is
             begin
 
                 if ena = '1' then
-                    data_out <= memory(to_integer(unsigned(addr_in)));
+                    data_out <= memory(to_index(addr_in));
                 else
                     data_out <= (others => 'Z');
                 end if;

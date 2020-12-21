@@ -53,7 +53,18 @@ package CPU_pkg is
 	-- status[4] = Odd Parity
 	-- status[5] = Sign (0 if positive)
 
-end CPU_pkg;
+	function to_index(vec : std_logic_vector) return integer;
+
+end package CPU_pkg;
 
 package body CPU_pkg is
-end CPU_pkg;
+
+	function to_index(vec : std_logic_vector) return integer is
+
+		begin
+
+			return to_integer(unsigned(vec));
+
+	end function to_index;
+
+end package body CPU_pkg;

@@ -62,12 +62,12 @@ $(TESTBENCH_PREFIX)% : $(TESTBENCH_PREFIX)%.$(SOURCE_FILE_EXT)
 	@echo "Analyzing and elobarating $*"
 	$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $*.$(SOURCE_FILE_EXT)
 	$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $(notdir $*)
-	@$(eval TESTBENCH_NAME=$(dir $*)$(TESTBENCH_PREFIX)$(notdir $*))
 	@echo "Running Simulation for $*"
-	$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $(TESTBENCH_NAME).$(SOURCE_FILE_EXT)
-	$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $(notdir $(TESTBENCH_NAME))
+	$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) \
+		$(dir $*)$(TESTBENCH_PREFIX)$(notdir $*).$(SOURCE_FILE_EXT)
+	$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $(TESTBENCH_PREFIX)$(notdir $*)
 	@[ -d $(DEST_FOLDER) ] || false
-	$(VHDL_COMPILER) $(RUN_OPTIONS) $(notdir $(TESTBENCH_NAME)) \
+	$(VHDL_COMPILER) $(RUN_OPTIONS) $(TESTBENCH_PREFIX)$(notdir $*) \
 		$(SIM_OPTION)=$(subst $(WORKING_FOLDER)/,,$(DEST_FOLDER)/$(notdir $*).$(SIM_EXT))
 ifeq ($(SIMULATE),1)
 	$(WAVE_VIEWER) $(subst $(WORKING_FOLDER)/,,$(DEST_FOLDER)/$(notdir $*).$(SIM_EXT))
@@ -77,7 +77,6 @@ endif
 # General Rule for all VHDL-Files
 
 % : %.$(SOURCE_FILE_EXT)
-	@echo $(SIMULATE)
 	@echo "Analyzing and elobarating $*"
 	@$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $*.$(SOURCE_FILE_EXT)
 	@$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $(notdir $*)

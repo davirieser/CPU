@@ -10,7 +10,7 @@ entity CPU is
         -- Clock Input
         clk         : in    std_logic;
         -- Input for OPCODE
-        OPCODE      : in    std_logic_vector(NUM_OPCODES - 1 downto 0);
+        OPCODE      : in    std_logic_vector(OPCODE_BITS - 1 downto 0);
         -- In/Outputs for Busses
         data_bus    : inout std_logic_vector(data_bus_width - 1 downto 0) := (others => 'Z');
         ctrl_bus    : inout std_logic_vector(ctrl_bus_width - 1 downto 0) := (others => 'Z');

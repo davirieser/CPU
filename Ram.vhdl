@@ -38,9 +38,9 @@ architecture behaviour of RAM is
 
                 if ena = '1' then
                     if rd_wr_in = '1' then
-                        data_out <= memory(to_integer(unsigned(addr_in)));
+                        data_out <= memory(to_index(addr_in));
                     else
-                        memory(to_integer(unsigned(addr_in))) <= data_in;
+                        memory(to_index(addr_in)) <= data_in;
                     end if;
                 else
                     data_out <= (others => 'Z');
