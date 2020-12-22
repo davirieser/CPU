@@ -42,6 +42,8 @@ architecture behaviour of ALU is
     signal RES_ODD_PARITY   : std_logic     := '0';
 
     signal ADD_OUT          : std_logic_vector(data_bus_width - 1 downto 0);
+    signal SUB_OUT          : std_logic_vector(data_bus_width - 1 downto 0);
+    signal SHIFT_OUT        : std_logic_vector(data_bus_width - 1 downto 0);
 
     signal TEMP_PARITY      : std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
 
@@ -61,39 +63,32 @@ architecture behaviour of ALU is
 	        aCarry          : out std_logic_vector(data_bus_width - 1 downto 0)
 	    );
 	end component Adder;
-    --
-    -- -- TODO Subtrahierer funktioniert noch nicht annaehernd
-    -- component Subtractor is
-    --     generic(
-    --         regWidth 		: integer
-    --     );
-    --     port(
-    --         ena             : in  std_logic;
-    --         inputA  		: in  std_logic_vector(data_bus_width - 1 downto 0);
-    --         inputB  		: in  std_logic_vector(data_bus_width - 1 downto 0);
-    --         carryIn			: in  std_logic;
-    --         aOutput 		: out std_logic_vector(data_bus_width - 1 downto 0);
-    --         aCarry          : out std_logic_vector(data_bus_width - 1 downto 0)
-    --     );
-    -- end component Subtractor;
 
-    -- Zur Multiplikation und Division mit 2 => Barrel Shifter
-    -- Habe ich schon geschrieben (2 mal um genau zu sein) und funktioniert
-    -- Sie sind jedoch nicht hardware-syntetisierbar und braucht mehrere Clock-Zyklen
-    -- TODO Eher umstaendliches Design da zuerst der Wert geladen muss und dann
-    -- erst nach und nach geschoben wird.
-    -- component Schieberegister is
-    --     generic(
-    --         regWidth 		: integer
-    --     );
-    --     port(
-    --         clk     	    : in  std_logic;
-    --         ena,uOd  		: in  std_logic;
-    --         plc 			: in  std_logic;
-    --         inputs  		: in  std_logic_vector(regWidth - 1 downto 0);
-    --         outputs 		: out std_logic_vector(regWidth - 1 downto 0)
-    --     );
-    -- end component Schieberegister;
+    component Subtractor is
+    	generic(
+    		regWidth 		: integer
+    	);
+        port(
+            carryIn         : in  std_logic;
+            inputA  		: in  std_logic_vector(regWidth - 1 downto 0);
+            inputB  		: in  std_logic_vector(regWidth - 1 downto 0);
+            aOutput   		: out std_logic_vector(regWidth - 1 downto 0);
+            aCarry          : out std_logic
+        );
+    end component Subtractor;
+
+    component ShiftRegister is
+    	generic(
+    		regWidth 		: integer;
+            crtl_bits       : integer
+    	);
+        port(
+            inputA  		: in  std_logic_vector(regWidth - 1 downto 0);
+            inputB  		: in  std_logic_vector(regWidth - 1 downto 0);
+            cyclicBuffer    : in  std_logic;
+            aOutput   		: out std_logic_vector(regWidth - 1 downto 0)
+        );
+    end component ShiftRegister;
 
     begin
 
@@ -126,19 +121,34 @@ architecture behaviour of ALU is
             )
     	;
 
-        -- shift : entity work.Schieberegister
-        --     generic map(
-        --         regWidth 	=> data_bus_width
-        --     )
-        --     port map(
-        --         clk		=> clk,
-        --         ena		=> '1',
-        --         plc		=> FLAG_SHIFT_REG_LOAD,
-        --         uOd		=> FLAG_UP_DOWN,
-        --         inputs	=> SHIFT_IN,
-        --         outputs	=> SHIFT_OUT
-        --     )
-        -- ;
+        int_sub : entity work.Subtractor
+            generic map(
+                regWidth    => data_bus_width
+            )
+            port map(
+                carryIn     => '0',
+                inputA      => operand1,
+                inputB      => operand2,
+                aOutput     => SUB_OUT,
+                -- Negative Flag
+                aCarry      => status_out(4)
+            )
+        ;
+
+        int_shift   : entity work.ShiftRegister
+            generic map(
+                regWidth    => data_bus_width,
+                -- TODO Wo anders ausrechenen
+                crtl_bits   => 3
+            )
+            port map(
+                inputA      => operand1,
+                inputB      => operand2,
+                -- TODO cyclic Buffer Flag
+                cyclicBuffer=> '0',
+                aOutput     => SHIFT_OUT
+            )
+        ;
 
         parity_gen : process(clk)
 
@@ -167,8 +177,8 @@ architecture behaviour of ALU is
                     WHEN "0011" => int_result <= RES_NOT_A;
                     WHEN "0100" => int_result <= RES_NOT_B;
                     WHEN "0101" => int_result <= ADD_OUT;
-                    -- WHEN "0110" => int_result <= SUB_OUT;
-                    -- WHEN "0111" => int_result <= SHIFT_OUT;
+                    WHEN "0110" => int_result <= SUB_OUT;
+                    WHEN "0111" => int_result <= SHIFT_OUT;
                     WHEN "1000" => int_result <= (data_bus_width - 1 downto 2 => '0') & RES_ODD_PARITY & RES_EVEN_PARITY;
                     -- Auf 'Z' gesetzt damit die CPU den Datenbus nicht durchgehend besetzt
                     WHEN others => int_result <= (others => 'Z');

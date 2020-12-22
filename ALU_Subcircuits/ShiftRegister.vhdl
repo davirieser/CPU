@@ -6,7 +6,9 @@ use work.CPU_pkg.all;
 
 entity ShiftRegister is
 	generic(
-		regWidth 		: integer := 2
+		regWidth 		: integer := 2;
+        -- Control-Bits has to be log2(regWidth) rounded down
+        crtl_bits       : integer := 1
 	);
     port(
         inputA  		: in  std_logic_vector(regWidth - 1 downto 0);
@@ -34,10 +36,13 @@ architecture behaviour of ShiftRegister is
                 temp(i) <= ((inputA(regWidth - i - 1 downto 0))) &
                     (inputA(regWidth - 1 downto regWidth - i) and temp_compare);
                     -- Die unten stehen Variante zum VerUNDen is schoener
-                    -- and (regWidth - i => cyclicBuffer));
+                    -- and (i => cyclicBuffer));
 
         end generate Shifts;
 
-        aOutput <= temp(0);
+        -- TODO Buffer still theoretically is cyclic if a bit above
+        --      the control-Bits is set
+        --      => Return all zeroes if a Bit above ctrl-Bits is set
+        aOutput <= temp(to_index(inputB(crtl_bits downto 0)));
 
 end behaviour;

@@ -7,7 +7,7 @@ end tb_ShiftRegister;
 
 architecture behaviour of tb_ShiftRegister is
 
-	constant regWidth 	: integer := 3;
+	constant regWidth 	: integer := 4;
 
 	signal sInputA 		: std_logic_vector(regWidth - 1 downto 0) := (others => '0');
 	signal sInputB 		: std_logic_vector(regWidth - 1 downto 0) := (others => '0');

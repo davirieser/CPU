@@ -49,7 +49,7 @@ architecture behaviour of Subtractor is
 
                 z          	<= inputA(i) xor twosComplement(i);
                 carry(i)    <= (not(z) and inputA(i)) or (z and carry(i - 1));
-                temp_out(i) <= z xor carry(i-1);
+                temp_out(i) <= z xor carry(i - 1);
 				zero_temp(i)<= temp_out(i) or zero_temp(i - 1);
 
         end generate Adders;
