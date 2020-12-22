@@ -2,12 +2,12 @@ library ieee;
 	use ieee.std_logic_1164.all;
 	use ieee.numeric_std.all;
 
-entity tb_Adder is
-end tb_Adder;
+entity tb_Subtractor is
+end tb_Subtractor;
 
-architecture behaviour of tb_Adder is
+architecture behaviour of tb_Subtractor is
 
-	constant regWidth 	: integer := 3;
+	constant regWidth 	: integer := 5;
 
 	signal sCarryIn 	: std_logic := '0';
 	signal sInputA 		: std_logic_vector(regWidth - 1 downto 0) := (others => '0');
@@ -15,8 +15,7 @@ architecture behaviour of tb_Adder is
 	signal sOutput 		: std_logic_vector(regWidth - 1 downto 0);
 	signal sCarry 		: std_logic;
 
-
-	component Adder is
+	component Subtractor is
 		generic(
 			regWidth 		: integer
 		);
@@ -27,11 +26,11 @@ architecture behaviour of tb_Adder is
 	        aOutput   		: out std_logic_vector(regWidth - 1 downto 0);
 	        aCarry          : out std_logic
 	    );
-	end component Adder;
+	end component Subtractor;
 
     begin
 
-		uut : entity work.Adder
+		uut : entity work.Subtractor
 		generic map(
 			regWidth  => regWidth
 		)

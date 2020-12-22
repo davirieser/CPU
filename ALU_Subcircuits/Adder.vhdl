@@ -30,14 +30,13 @@
 
 library ieee;
 	use ieee.std_logic_1164.all;
-	use ieee.numeric_std.all;
+	-- use ieee.numeric_std.all;
 
 entity Adder is
 	generic(
 		regWidth 		: integer := 2
 	);
     port(
-        ena             : in  std_logic;
         carryIn         : in  std_logic;
         inputA  		: in  std_logic_vector(regWidth - 1 downto 0);
         inputB  		: in  std_logic_vector(regWidth - 1 downto 0);
@@ -61,13 +60,13 @@ architecture behaviour of Adder is
 
             begin
 
-                z           <= inputA(i) xor inputB(i);
+                z          	<= inputA(i) xor inputB(i);
                 carry(i)    <= (not(z) and inputA(i)) or (z and carry(i - 1));
-                aOutput(i)  <= ena and (z xor carry(i-1));
+                aOutput(i)  <= z xor carry(i-1);
 
         end generate Adders;
 
 		aCarry		<= carry(regWidth - 1);
-        aOutput(0)  <= ena and ((inputA(0) xor inputB(0)) xor carryIn);
+        aOutput(0)  <= (inputA(0) xor inputB(0)) xor carryIn;
 
 end behaviour;
