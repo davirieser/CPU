@@ -66,7 +66,7 @@ package CPU_pkg is
 	constant INT_PRIORITIES	: integer	:= 2 ** INT_PRIO_BITS;
 
 	-- Start Address of the Program => Start Value of Instruction Register
-	constant PROG_START		: std_logic_vector(addr_bus_width - 1 downto 0) := ((addr_bus_width - data_bus_width) - 2 => '1') & '0' & (data_bus_width => '1');
+	constant PROG_START		: std_logic_vector(addr_bus_width - 1 downto 0) := (others => '0');
 
 	constant oper_flag_num	: integer	:= 1;
 	-- flags[0] = Cyclic Buffer Enable

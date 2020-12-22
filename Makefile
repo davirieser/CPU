@@ -45,12 +45,8 @@ all: \
 # Analyze Packages
 
 %$(PACKAGE_SUFFIX) : %$(PACKAGE_SUFFIX).$(SOURCE_FILE_EXT)
-# ifneq ("$(wildcard $(WORK_LIBRARY))","")
-# 	@echo "Work File already exists"
-# else
 	@echo "Analyzing Package-File $*$(PACKAGE_SUFFIX).$(SOURCE_FILE_EXT)"
 	@$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $*$(PACKAGE_SUFFIX).$(SOURCE_FILE_EXT)
-# endif
 
 # ------------------------------------------------------------------------------
 # Ignore Testbenches => Will be called by their respective Test-File

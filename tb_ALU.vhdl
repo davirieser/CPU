@@ -27,9 +27,8 @@ architecture behaviour of tb_ALU is
             -- Inputs for both Operands
             operand1    : in  std_logic_vector(data_bus_width - 1 downto 0);
             operand2    : in  std_logic_vector(data_bus_width - 1 downto 0);
-            -- Status Input Flags -> See CPU_pkg
-            -- Should the result work as a cyclic buffer
-            cycle_flag  : in std_logic;
+	        -- Flags for the Arithmetic Operations
+	        oper_flags  : in  std_logic_vector(oper_flag_num - 1 downto 0);
             -- result of the Operation
             result      : out std_logic_vector(data_bus_width - 1 downto 0);
             -- Status Output Flags -> See CPU_pkg
@@ -44,7 +43,7 @@ architecture behaviour of tb_ALU is
                                     ctrl        => (others => '0'),
                                     operand1    => sOperand1,
                                     operand2    => sOperand2,
-                                    cycle_flag  => '0',
+									oper_flags	=> (others => '0'),
                                     result      => result_int,
                                     status_out  => stat_out_int
                                 );
