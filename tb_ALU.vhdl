@@ -15,8 +15,8 @@ architecture behaviour of tb_ALU is
     signal result_int   : std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
     signal stat_out_int : std_logic_vector(numStatReg - 1 downto 0) := (others => '0');
 
-	signal sOperand1	: std_logic_vector(data_bus_width - 1 downto 0);
-	signal sOperand2	: std_logic_vector(data_bus_width - 1 downto 0);
+	signal sOperand1	: std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
+	signal sOperand2	: std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
 
     component ALU is
         port(
@@ -59,9 +59,9 @@ architecture behaviour of tb_ALU is
 
 				wait for base_clock;
 
-                for sCount in 0 to (3*data_bus_width) loop
+                for sCount in 0 to ((2 ** (2 * data_bus_width)) - 1) loop
 
-					sTemp := std_logic_vector( unsigned(sTemp) + 16 );
+					sTemp := std_logic_vector( unsigned(sTemp) + 1 );
 
 					sOperand1 <= sTemp(data_bus_width - 1 downto 0);
 					sOperand2 <= sTemp((2 * data_bus_width) - 1 downto data_bus_width);

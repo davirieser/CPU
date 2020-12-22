@@ -131,7 +131,7 @@ architecture behaviour of ALU is
                 inputB      => operand2,
                 aOutput     => SUB_OUT,
                 -- Negative Flag
-                aCarry      => status_out(4)
+                aCarry      => status_out_int(4)
             )
         ;
 
@@ -139,7 +139,7 @@ architecture behaviour of ALU is
             generic map(
                 regWidth    => data_bus_width,
                 -- TODO Wo anders ausrechenen
-                crtl_bits   => 3
+                crtl_bits   => 1
             )
             port map(
                 inputA      => operand1,
@@ -168,8 +168,6 @@ architecture behaviour of ALU is
 
             begin
 
-                -- TODO Mit Multiplexer synthetisieren?
-                -- Is halt um einiges Code aufwendiger und bringt am Ende auch nix
                 case ctrl(7 downto 4) is
                     WHEN "0000" => int_result <= RES_AND;
                     WHEN "0001" => int_result <= RES_OR;
