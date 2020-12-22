@@ -46,8 +46,6 @@ architecture structure of CPU is
             -- Inputs for both Operands
             operand1    : in  std_logic_vector(data_bus_width - 1 downto 0);
             operand2    : in  std_logic_vector(data_bus_width - 1 downto 0);
-            -- Should the result work as a cyclic buffer
-            cycle_flag  : in std_logic;
             -- Result of the Operation
             result      : out std_logic_vector(data_bus_width - 1 downto 0);
             -- Status Output Flags -> See CPU_pkg

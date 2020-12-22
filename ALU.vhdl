@@ -13,9 +13,8 @@ entity ALU is
         -- Inputs for both Operands
         operand1    : in  std_logic_vector(data_bus_width - 1 downto 0);
         operand2    : in  std_logic_vector(data_bus_width - 1 downto 0);
-        -- Status Input Flags -> See CPU_pkg
-        -- Should the result work as a cyclic buffer
-        cycle_flag  : in std_logic;
+        -- Flags for the Arithmetic Operations
+        oper_flags  : in  std_logic_vector(oper_flag_num - 1 downto 0);
         -- result of the Operation
         result      : out std_logic_vector(data_bus_width - 1 downto 0);
         -- Status Output Flags -> See CPU_pkg
@@ -55,7 +54,6 @@ architecture behaviour of ALU is
 			regWidth 		: integer
 		);
 	    port(
-	        ena             : in  std_logic;
 	        inputA  		: in  std_logic_vector(data_bus_width - 1 downto 0);
 	        inputB  		: in  std_logic_vector(data_bus_width - 1 downto 0);
 			carryIn			: in  std_logic;
@@ -119,8 +117,6 @@ architecture behaviour of ALU is
     			regWidth 	=> data_bus_width
     		)
     		port map(
-                -- Theoretisch nicht noetig da der Addierer durchgehend arbeitet
-    			ena 		=> '1',
     			inputA 		=> operand1,
     			inputB 		=> operand2,
                 -- Theoretisch in diesem Fall nicht notwendig
@@ -130,22 +126,6 @@ architecture behaviour of ALU is
             )
     	;
 
-        -- subtr : entity work.Adder
-        --     generic map(
-        --         regWidth 	=> data_bus_width
-        --     )
-        --     port map(
-        --         -- Theoretisch nicht noetig da der Addierer durchgehend arbeitet
-        --         ena 		=> '1',
-        --         inputA 		=> operand1,
-        --         inputB 		=> operand2,
-        --         -- Theoretisch in diesem Fall nicht notwendig
-        --         carryIn		=> '0',
-        --         aOutput 	=> SUB_OUT,
-        --         aCarry 	    => FLAG_UNDERFLOW
-        --     )
-        -- ;
-        --
         -- shift : entity work.Schieberegister
         --     generic map(
         --         regWidth 	=> data_bus_width
@@ -181,16 +161,15 @@ architecture behaviour of ALU is
                 -- TODO Mit Multiplexer synthetisieren?
                 -- Is halt um einiges Code aufwendiger und bringt am Ende auch nix
                 case ctrl(7 downto 4) is
-                    -- WHEN "0000" => int_result <= RES_AND;
-                    -- WHEN "0001" => int_result <= RES_OR;
-                    -- WHEN "0010" => int_result <= RES_XOR;
-                    -- WHEN "0011" => int_result <= RES_NOT_A;
-                    -- WHEN "0100" => int_result <= RES_NOT_B;
+                    WHEN "0000" => int_result <= RES_AND;
+                    WHEN "0001" => int_result <= RES_OR;
+                    WHEN "0010" => int_result <= RES_XOR;
+                    WHEN "0011" => int_result <= RES_NOT_A;
+                    WHEN "0100" => int_result <= RES_NOT_B;
                     WHEN "0101" => int_result <= ADD_OUT;
                     -- WHEN "0110" => int_result <= SUB_OUT;
                     -- WHEN "0111" => int_result <= SHIFT_OUT;
-                    -- WHEN "1000" => int_result <= XOR_out;
-                    WHEN "1001" => int_result <= (data_bus_width - 1 downto 2 => '0') & RES_ODD_PARITY & RES_EVEN_PARITY;
+                    WHEN "1000" => int_result <= (data_bus_width - 1 downto 2 => '0') & RES_ODD_PARITY & RES_EVEN_PARITY;
                     -- Auf 'Z' gesetzt damit die CPU den Datenbus nicht durchgehend besetzt
                     WHEN others => int_result <= (others => 'Z');
                 end case;

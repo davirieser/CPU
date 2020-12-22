@@ -16,6 +16,9 @@ DEST_FOLDER=$(abspath sim)
 WORKING_FOLDER=$(abspath .)
 WORK_LIBRARY=work-obj93.cf
 
+# Include Subdirectories for VHDL-Files
+VPATH=ALU_Subcircuits:CPU_Subcircuits
+
 ifeq ($(SIM_EXT),$(SIM_EXT1))
 SIM_OPTION:=--wave
 else ifeq ($(SIM_EXT),$(SIM_EXT2))
