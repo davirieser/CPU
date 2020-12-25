@@ -17,7 +17,7 @@ WORKING_FOLDER=$(abspath .)
 WORK_LIBRARY=work-obj93.cf
 
 # Include Subdirectories for VHDL-Files
-VPATH=ALU_Subcircuits:CPU_Subcircuits
+VPATH=ALU_Subcircuits:CPU_Subcircuits:Packages
 
 ifeq ($(SIM_EXT),$(SIM_EXT1))
 SIM_OPTION:=--wave

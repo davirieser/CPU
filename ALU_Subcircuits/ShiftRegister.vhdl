@@ -24,17 +24,18 @@ architecture behaviour of ShiftRegister is
 
     signal temp : SHIFT_TYPE := (others => (others => '0'));
 
+	signal temp_compare : std_logic_vector(regWidth downto 0) := (others => cyclicBuffer);
+
     begin
 
         Shifts : for i in 0 to regWidth - 1 generate
-
-            signal temp_compare : std_logic_vector(i - 1 downto 0);
 
             begin
 
                 temp_compare <= (others => cyclicBuffer);
                 temp(i) <= ((inputA(regWidth - i - 1 downto 0))) &
-                    (inputA(regWidth - 1 downto regWidth - i) and temp_compare);
+                    (inputA(regWidth - 1 downto regWidth - i) and
+					temp_compare(regWidth - 1 downto regWidth - i));
                     -- Die unten stehen Variante zum VerUNDen is schoener
                     -- and (i => cyclicBuffer));
 
@@ -43,6 +44,6 @@ architecture behaviour of ShiftRegister is
         -- TODO Buffer still theoretically is cyclic if a bit above
         --      the control-Bits is set
         --      => Return all zeroes if a Bit above ctrl-Bits is set
-        aOutput <= temp(to_index(inputB(crtl_bits downto 0)));
+        aOutput <= temp(to_index(inputB(crtl_bits - 1 downto 0)));
 
 end behaviour;

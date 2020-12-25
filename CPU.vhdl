@@ -9,8 +9,6 @@ entity CPU is
         reset       : in std_logic;
         -- Clock Input
         clk         : in    std_logic;
-        -- Input for OPCODE
-        OPCODE      : in    std_logic_vector(OPCODE_BITS - 1 downto 0);
         -- In/Outputs for Busses
         data_bus    : inout std_logic_vector(data_bus_width - 1 downto 0) := (others => 'Z');
         ctrl_bus    : inout std_logic_vector(ctrl_bus_width - 1 downto 0) := (others => 'Z');
@@ -26,6 +24,8 @@ end CPU;
 
 architecture structure of CPU is
 
+    type REGISTERS is array(0 to (NUM_REG to 0) of std_logic_vector(regWidth - 1 downto 0));
+
     signal data_bus_intern  : std_logic_vector(data_bus_width - 1 downto 0) := (others => 'Z');
     signal ctrl_bus_intern  : std_logic_vector(ctrl_bus_width - 1 downto 0) := (others => 'Z');
     signal addr_bus_intern  : std_logic_vector(addr_bus_width - 1 downto 0) := (others => 'Z');
@@ -37,12 +37,15 @@ architecture structure of CPU is
     signal memory_address_r : std_logic_vector(addr_bus_width - 1 downto 0) := (others => '0');
     signal memory_data_reg  : std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
 
+    signal REGS             : REGISTERS;
+    signal ALU_CTRL_REG     : std_logic_vector(ALU_CTRL_WIDTH - 1 downto 0);
+
+    signal OPCODE_intern    : std_logic_vector(OPCODE_BITS - 1 downto 0);
+
     component ALU is
         port(
-            -- Clock Input
-            clk         : in  std_logic;
             -- Input for OPCODE -> tells the ALU which command to execute
-            ctrl        : in  std_logic;
+            ctrl        : in std_logic_vector(ALU_CTRL_WIDTH - 1 downto 0);
             -- Inputs for both Operands
             operand1    : in  std_logic_vector(data_bus_width - 1 downto 0);
             operand2    : in  std_logic_vector(data_bus_width - 1 downto 0);
@@ -53,7 +56,38 @@ architecture structure of CPU is
         );
     end component ALU;
 
+    component MemoryManager is
+        port (
+            ena         : in std_logic;
+            rd_wr       : in std_logic;
+            address     : in std_logic_vector(addr_bus_width - 1 downto 0);
+            data_out    : out std_logic_vector(data_bus_width - 1 downto 0)
+        );
+    end component MemoryManager;
+
     begin
+
+        alu_ent : entity work.ALU port map(
+            ctrl        => ALU_CTRL_REG,
+            operand1    => REGS(0),
+            operand2    => REGS(1),
+            result      => data_bus_intern,
+            status_out  => status_registers
+        );
+
+        mmu : entity work.MemoryManager port map(
+            ena         => '0',
+            rd_wr       => '0',
+            address     => addr_bus_intern,
+            data_out    => data_bus_intern
+        )
+
+        decoder : process(clk)
+
+            -- TODO
+            -- EEPROM-Lookup-Table to execute Micro-Instructions
+
+        end process decoder;
 
         p_bus : process(clk)
 

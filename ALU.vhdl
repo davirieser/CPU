@@ -6,8 +6,6 @@ library ieee;
 
 entity ALU is
     port(
-        -- Clock Input
-        clk         : in  std_logic;
         -- Input for OPCODE -> tells the ALU which command to execute
         ctrl        : in  std_logic_vector(ctrl_bus_width - 1 downto 0);
         -- Inputs for both Operands
@@ -150,7 +148,7 @@ architecture behaviour of ALU is
             )
         ;
 
-        parity_gen : process(clk)
+        parity_gen : process(TEMP_PARITY)
 
             begin
 
@@ -164,7 +162,7 @@ architecture behaviour of ALU is
 
         end process parity_gen;
 
-        output_gen : process(clk)
+        output_gen : process(ctrl,operand1,operand2)
 
             begin
 

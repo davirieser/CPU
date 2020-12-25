@@ -37,7 +37,7 @@ package CPU_pkg is
 	----------------------------------------
 
     constant regWidth       : integer   := data_bus_width;
-    constant numReg         : integer   := 8;
+    constant NUM_REG		: integer   := 8;
 
 	-- ROM_SIZE and RAM_SIZE will be multiplied by data_bus_width
 	constant ROM_ADDR_BITS	: integer 	:= 14;
@@ -71,10 +71,13 @@ package CPU_pkg is
 	constant PROG_START		:
 		std_logic_vector(addr_bus_width - 1 downto 0) :=
 		(
-		addr_bus_width - PROG_COU_INC => '0',
-		others => '1'
+			addr_bus_width - PROG_COU_INC => '0',
+			others => '1'
 		)
 	;
+
+	constant NUM_ALU_OPER	: integer	:= 9;
+	constant ALU_CTRL_WIDTH	: integer	:= 4;-- log2(NUM_ALU_OPER)
 
 	constant oper_flag_num	: integer	:= 1;
 	-- flags[0] = Cyclic Buffer Enable

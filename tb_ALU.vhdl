@@ -9,9 +9,6 @@ end tb_ALU;
 
 architecture behaviour of tb_ALU is
 
-    signal clk_s    : std_logic         := '0';
-    signal reset    : std_logic         := '0';
-
     signal result_int   : std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
     signal stat_out_int : std_logic_vector(numStatReg - 1 downto 0) := (others => '0');
 
@@ -20,8 +17,6 @@ architecture behaviour of tb_ALU is
 
     component ALU is
         port(
-            -- Clock Input
-            clk         : in  std_logic;
             -- Input for OPCODE -> tells the ALU which command to execute
             ctrl        : in  std_logic_vector(ctrl_bus_width - 1 downto 0);
             -- Inputs for both Operands
@@ -39,7 +34,6 @@ architecture behaviour of tb_ALU is
     begin
 
         uut : entity work.ALU port map(
-                                    clk	    	=> clk_s,
                                     ctrl        => (others => '0'),
                                     operand1    => sOperand1,
                                     operand2    => sOperand2,
@@ -59,9 +53,9 @@ architecture behaviour of tb_ALU is
 
 				wait for base_clock;
 
-                for sCount in 0 to ((2 ** (2 * data_bus_width)) - 1) loop
+                for sCount in 0 to (2 ** (2 * data_bus_width) - 1) loop
 
-					sTemp := std_logic_vector( unsigned(sTemp) + 1 );
+					sTemp := std_logic_vector(unsigned(sTemp) + 1);
 
 					sOperand1 <= sTemp(data_bus_width - 1 downto 0);
 					sOperand2 <= sTemp((2 * data_bus_width) - 1 downto data_bus_width);
