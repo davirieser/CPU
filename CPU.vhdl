@@ -15,10 +15,16 @@ entity CPU is
         addr_bus    : inout std_logic_vector(addr_bus_width - 1 downto 0) := (others => 'Z');
         -- Ready tells the CPU if it should work
         ready       : in std_logic;
+        -- Wait indicates that the CPU is not working
+        wait_o      : out std_logic;
         -- Interrupt-Request Pin -> Indicates that Interrupt has occured
         int_req     : in std_logic;
         -- Turn on or off if the CPU is able to access the bus
-        bus_enable  : in    std_logic
+        bus_enable  : in    std_logic;
+        -- Request that the DMA needs the Bus
+        hold        : in std_logic;
+        -- Confirmation that the CPU gave the Bus free
+        hold_a      : out std_logic
     );
 end CPU;
 
@@ -56,14 +62,21 @@ architecture structure of CPU is
         );
     end component ALU;
 
-    component MemoryManager is
-        port (
-            ena         : in std_logic;
-            rd_wr       : in std_logic;
-            address     : in std_logic_vector(addr_bus_width - 1 downto 0);
-            data_out    : out std_logic_vector(data_bus_width - 1 downto 0)
+    component ProgCounter is
+        port(
+            clk         : in  std_logic;
+            -- Increment Program-Counter-Flag
+            inc         : in std_logic;
+            -- Override Program-Counter-Signal
+            ovr         : in  std_logic;
+            -- Override Value
+            ovr_count   : in  std_logic_vector(addr_bus_width - 1 downto 0);
+            -- Program-Counter Out
+            prog_count  : out std_logic_vector(addr_bus_width - 1 downto 0) := (others => '0');
+            -- Program Counter Overflow
+            cnt_overf   : out std_logic
         );
-    end component MemoryManager;
+    end component ProgCounter;
 
     begin
 
@@ -75,19 +88,12 @@ architecture structure of CPU is
             status_out  => status_registers
         );
 
-        mmu : entity work.MemoryManager port map(
-            ena         => '0',
-            rd_wr       => '0',
-            address     => addr_bus_intern,
-            data_out    => data_bus_intern
-        )
-
-        decoder : process(clk)
-
-            -- TODO
-            -- EEPROM-Lookup-Table to execute Micro-Instructions
-
-        end process decoder;
+        -- mmu : entity work.MemoryManager port map(
+        --     ena         => '0',
+        --     rd_wr       => '0',
+        --     address     => addr_bus_intern,
+        --     data_out    => data_bus_intern
+        -- )
 
         p_bus : process(clk)
 

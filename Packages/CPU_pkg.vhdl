@@ -12,29 +12,102 @@ package CPU_pkg is
 	-- Transmits data from one CPU-Component to another
 	constant data_bus_width	: integer	:= 8;
 	-- Controls the Data=Flow over the Data-Bus
-	constant ctrl_bus_width	: integer	:= 8;
+	constant ctrl_bus_width	: integer	:= 17;
 	-- Tells the components which Address should be fetched/written
 	constant addr_bus_width	: integer	:= 16;
 
 	----------------------------------------
 	-- CONTROL WORDS OVER THE CONTROL-BUS
 	----------------------------------------
-	-- Bit 0 => Interrupt Request
-	-- Bit 1 => Program Counter Override
-	-- Bit 2 => Program Counter In
-	-- Bit 3 => Program Counter Out
-	-- Bit 4 => Memory Read
-	-- Bit 5 => Memory Write
-	-- Bit 6 => Memory Address Register In
-	-- Bit 7 => ALU Result OUT
-	-- Bit 8 => Swap Register A and B
-	-- Bit 9 => Status Flags In
-	-- Bit 10 => Clear Status Flags
-	-- Bit 11 => Register A In
-	-- Bit 12 => Register A Out
-	-- Bit 13 => Register B In
-	-- Bit 14 => Register B Out
+	-- Bit 0 => Reset
+	-- Bit 1 => Clock
+	-- Bit 2 => Interrupt Request
+	-- Bit 3 => Program Counter Override
+	-- Bit 4 => Program Counter In
+	-- Bit 5 => Program Counter Out
+	-- Bit 6 => Memory Read
+	-- Bit 7 => Memory Write
+	-- Bit 8 => Memory Address Register In
+	-- Bit 9 => ALU Result OUT
+	-- Bit 10 => Swap Register A and B
+	-- Bit 11 => Status Flags In
+	-- Bit 12 => Clear Status Flags
+	-- Bit 13 => Register A In
+	-- Bit 14 => Register A Out
+	-- Bit 15 => Register B In
+	-- Bit 16 => Register B Out
+	constant RESET_CTL	:	integer	:= 0;
+	constant CLOCK_CTL	:	integer := 1
+	constant INT_REQ_B	: 	integer	:= 2;
+	constant PRC_OVR_B	: 	integer := 3;
+	constant PRC_IN_B	: 	integer := 4;
+	constant PRC_OUT_B	: 	integer := 5;
+	constant MEM_RD_B	: 	integer := 6;
+	constant MEM_WRI_B	: 	integer := 7;
+	constant MEM_ARI_B	: 	integer := 8;
+	constant ALU_RSO_B	: 	integer := 9;
+	constant SWP_REG_B	: 	integer := 10;
+	constant STF_IN_B	: 	integer := 11;
+	constant CLR_STF_B	: 	integer := 12;
+	constant REG_AIN_B	: 	integer := 13;
+	constant REG_AOU_B	: 	integer := 14;
+	constant REG_BIN_B	: 	integer := 15;
+	constant REG_BOU_B	: 	integer := 16;
 	----------------------------------------
+
+	--------------------------------------------------------------------------------------------------
+	-- Bit 0 => Reset
+	constant RESET		: 	std_logic_vector(ctrl_bus_width - 1 downto 0)
+		:= (RESET_CTL => '1',others => '0');
+	-- Bit 1 => Interrupt Request
+	constant CLOCK		: 	std_logic_vector(ctrl_bus_width - 1 downto 0)
+		:= (CLOCK_CTL => '1',others => '0');
+	-- Bit 2 => Interrupt Request
+	constant INT_REQ	: 	std_logic_vector(ctrl_bus_width - 1 downto 0)
+		:= (INT_REQ_B => '1',others => '0');
+	-- Bit 3 => Program Counter Override
+	constant PRC_OVR	:	std_logic_vector(ctrl_bus_width - 1 downto 0)
+		:= (PRC_OVR_B => '1',others => '0');
+	-- Bit 4 => Program Counter In
+	constant PRC_IN	:	std_logic_vector(ctrl_bus_width - 1 downto 0)
+		:= (PRC_IN_B => '1',others => '0');
+	-- Bit 5 => Program Counter Out
+	constant PRC_OUT	:	std_logic_vector(ctrl_bus_width - 1 downto 0)
+		:= (PRC_OUT_B => '1',others => '0');
+	-- Bit 6 => Memory Read
+	constant MEM_RD	:	std_logic_vector(ctrl_bus_width - 1 downto 0)
+		:= (MEM_RD_B => '1',others => '0');
+	-- Bit 7 => Memory Write
+	constant MEM_WRI	:	std_logic_vector(ctrl_bus_width - 1 downto 0)
+		:= (MEM_WRI_B => '1',others => '0');
+	-- Bit 8 => Memory Address Register In
+	constant MEM_ARI	:	std_logic_vector(ctrl_bus_width - 1 downto 0)
+		:= (MEM_ARI_B => '1',others => '0');
+	-- Bit 9 => ALU Result OUT
+	constant ALU_RSO	:	std_logic_vector(ctrl_bus_width - 1 downto 0)
+		:= (ALU_RSO_B => '1',others => '0');
+	-- Bit 10 => Swap Register A and B
+	constant SWP_REG	:	std_logic_vector(ctrl_bus_width - 1 downto 0)
+		:= (SWP_REG_B => '1',others => '0');
+	-- Bit 11 => Status Flags In
+	constant STF_IN	:	std_logic_vector(ctrl_bus_width - 1 downto 0)
+		:= (STF_IN_B => '1',others => '0');
+	-- Bit 12 => Clear Status Flags
+	constant CLR_STF	:	std_logic_vector(ctrl_bus_width - 1 downto 0)
+		:= (CLR_STF_B => '1',others => '0');
+	-- Bit 13 => Register A In
+	constant REG_AIN	:	std_logic_vector(ctrl_bus_width - 1 downto 0)
+		:= (REG_AIN_B => '1',others => '0');
+	-- Bit 14 => Register A Out
+	constant REG_AOU	:	std_logic_vector(ctrl_bus_width - 1 downto 0)
+		:= (REG_AOU_B => '1',others => '0');
+	-- Bit 15 => Register B In
+	constant REG_BIN	:	std_logic_vector(ctrl_bus_width - 1 downto 0)
+		:= (REG_BIN_B => '1',others => '0');
+	-- Bit 16 => Register B Out
+	constant REG_BOU	:	std_logic_vector(ctrl_bus_width - 1 downto 0)
+		:= (REG_BOU_B => '1',others => '0');
+	--------------------------------------------------------------------------------------------------
 
     constant regWidth       : integer   := data_bus_width;
     constant NUM_REG		: integer   := 8;
@@ -67,11 +140,13 @@ package CPU_pkg is
 
 	-- Needs to be set to log2(data_bus_width)
 	constant PROG_COU_INC	: integer := 3;
+	constant PROG_COU_START_DISTANCE	: integer := 4;
 	-- Start Address of the Program => Start Value of Instruction Register
-	constant PROG_START		:
+	-- Program Start
+	constant PROG_START	:
 		std_logic_vector(addr_bus_width - 1 downto 0) :=
 		(
-			addr_bus_width - PROG_COU_INC => '0',
+			addr_bus_width - (PROG_COU_INC + PROG_COU_START_DISTANCE) => '0',
 			others => '1'
 		)
 	;

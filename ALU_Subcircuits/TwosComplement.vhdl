@@ -30,7 +30,7 @@ architecture behaviour of TwosComplement is
             begin
 
                 aOutput(i) <= tempInput(i) xor carries(i - 1);
-                carries(i) <= tempInput(i) and carries(i -  1);
+                carries(i) <= tempInput(i) and carries(i - 1);
 
         end generate Adders;
 
