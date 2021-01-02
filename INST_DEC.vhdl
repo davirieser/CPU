@@ -19,6 +19,38 @@ architecture behaviour of INST_DEC is
 
     begin
 
-        ctrl_bus <= (others => 'Z');
+        dec : process
+
+            begin
+
+                case inst is
+                    when NOP_INST =>
+                        ctrl_bus <= NOP_CODES(to_index(micro_cyc));
+                    when MOV_INST =>
+                        ctrl_bus <= MOV_CODES(to_index(micro_cyc));
+                    when JEZ_INST =>
+                        ctrl_bus <= JEZ_CODES(to_index(micro_cyc));
+                    when JCO_INST =>
+                        ctrl_bus <= JCO_CODES(to_index(micro_cyc));
+                    when JSN_INST =>
+                        ctrl_bus <= JSN_CODES(to_index(micro_cyc));
+                    when ADD_INST =>
+                        ctrl_bus <= ADD_CODES(to_index(micro_cyc));
+                    when SUB_INST =>
+                        ctrl_bus <= SUB_CODES(to_index(micro_cyc));
+                    when SHL_INST =>
+                        ctrl_bus <= SHL_CODES(to_index(micro_cyc));
+                    when SHR_INST =>
+                        ctrl_bus <= SHR_CODES(to_index(micro_cyc));
+                    when TWC_INST =>
+                        ctrl_bus <= TWC_CODES(to_index(micro_cyc));
+                    when WFI_INST =>
+                        ctrl_bus <= WFI_CODES(to_index(micro_cyc));
+                    -- Default to NOP if Instruction is not recognized
+                    when others =>
+                        ctrl_bus <= NOP_CODES(to_index(micro_cyc));
+                end case;
+
+        end process dec;
 
 end behaviour;
