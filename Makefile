@@ -46,7 +46,7 @@ all: \
 
 %$(PACKAGE_SUFFIX) : %$(PACKAGE_SUFFIX).$(SOURCE_FILE_EXT)
 	@echo "Analyzing Package-File $*$(PACKAGE_SUFFIX).$(SOURCE_FILE_EXT)"
-	@$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $*$(PACKAGE_SUFFIX).$(SOURCE_FILE_EXT)
+	@-$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $*$(PACKAGE_SUFFIX).$(SOURCE_FILE_EXT)
 
 # ------------------------------------------------------------------------------
 # Ignore Testbenches => Will be called by their respective Test-File
@@ -59,17 +59,17 @@ $(TESTBENCH_PREFIX)% : $(TESTBENCH_PREFIX)%.$(SOURCE_FILE_EXT)
 
 % : %.$(SOURCE_FILE_EXT) $(TESTBENCH_PREFIX)%.$(SOURCE_FILE_EXT)
 	@echo "Analyzing and elobarating $*"
-	$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $*.$(SOURCE_FILE_EXT)
-	$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $(notdir $*)
+	-$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $*.$(SOURCE_FILE_EXT)
+	-$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $(notdir $*)
 	@echo "Running Simulation for $*"
-	$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) \
+	-$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) \
 		$(dir $*)$(TESTBENCH_PREFIX)$(notdir $*).$(SOURCE_FILE_EXT)
-	$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $(TESTBENCH_PREFIX)$(notdir $*)
+	-$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $(TESTBENCH_PREFIX)$(notdir $*)
 	@[ -d $(DEST_FOLDER) ] || false
-	$(VHDL_COMPILER) $(RUN_OPTIONS) $(TESTBENCH_PREFIX)$(notdir $*) \
+	-$(VHDL_COMPILER) $(RUN_OPTIONS) $(TESTBENCH_PREFIX)$(notdir $*) \
 		$(SIM_OPTION)=$(subst $(WORKING_FOLDER)/,,$(DEST_FOLDER)/$(notdir $*).$(SIM_EXT))
 ifeq ($(SIMULATE),1)
-	$(WAVE_VIEWER) $(subst $(WORKING_FOLDER)/,,$(DEST_FOLDER)/$(notdir $*).$(SIM_EXT))
+	-$(WAVE_VIEWER) $(subst $(WORKING_FOLDER)/,,$(DEST_FOLDER)/$(notdir $*).$(SIM_EXT))
 endif
 
 # ------------------------------------------------------------------------------
@@ -77,8 +77,8 @@ endif
 
 % : %.$(SOURCE_FILE_EXT)
 	@echo "Analyzing and elobarating $*"
-	@$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $*.$(SOURCE_FILE_EXT)
-	@$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $(notdir $*)
+	@-$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $*.$(SOURCE_FILE_EXT)
+	@-$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $(notdir $*)
 
 # ------------------------------------------------------------------------------
 # Clean Command
