@@ -29,13 +29,13 @@ architecture behaviour of MemoryManager is
 
                         -- TODO Implement EEPROM, RAM and EXT_MEM
 
-                        data <= mem(to_index(address))
+                        -- data <= mem(to_index(address));
 
                     else
 
                         -- TODO Implement EEPROM, RAM and EXT_MEM
 
-                        mem(to_index(address)) <= data;
+                        -- mem(to_index(address)) <= data;
 
                     end if;
 

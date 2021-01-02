@@ -23,9 +23,11 @@ end ProgCounter;
 
 architecture structure of ProgCounter is
 
-    variable prog_count_s : std_logic_vector(addr_bus_width - 1 downto 0) := PROG_START;
+    signal prog_count_s     : std_logic_vector(addr_bus_width - 1 downto 0) := PROG_START;
 
-    signal carries      : std_logic_vector(addr_bus_width - 1 downto 0) := (others => '0');
+    signal carries          : std_logic_vector(addr_bus_width - 1 downto 0) := (others => '0');
+
+    signal aOutput          : std_logic_vector(addr_bus_width - 1 downto 0) := (others => '0');
 
     begin
 
@@ -39,7 +41,7 @@ architecture structure of ProgCounter is
             begin
 
                 aOutput(i) <= prog_count_s(i) xor carries(i - 1);
-                carries(i) <= prog_count_s(i) and carries(i -  1);
+                carries(i) <= prog_count_s(i) and carries(i - 1);
 
         end generate Adders;
 
@@ -49,16 +51,16 @@ architecture structure of ProgCounter is
 
             begin
                 if (ovr = '1') then
-                    prog_count_s := ovr_count;
+                    prog_count_s <= ovr_count;
                 elsif (inc = '1') then
-                    prog_count_s := aOutput(addr_bus_width - 1);
+                    prog_count_s <= aOutput;
                 end if;
 
         end process Counter;
 
         -- Outputs ---------------------------------------------
 
-        prog_count <= prog_count_s;
-        prog_cnt_o <= carries(addr_bus_width - 1) and inc;
+        prog_count  <= prog_count_s;
+        cnt_overf   <= carries(addr_bus_width - 1) and inc;
 
 end structure;

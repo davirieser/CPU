@@ -37,7 +37,7 @@ package CPU_pkg is
 	-- Bit 15 => Register B In
 	-- Bit 16 => Register B Out
 	constant RESET_CTL	:	integer	:= 0;
-	constant CLOCK_CTL	:	integer := 1
+	constant CLOCK_CTL	:	integer := 1;
 	constant INT_REQ_B	: 	integer	:= 2;
 	constant PRC_OVR_B	: 	integer := 3;
 	constant PRC_IN_B	: 	integer := 4;

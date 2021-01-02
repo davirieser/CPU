@@ -7,7 +7,7 @@ library ieee;
 entity ALU is
     port(
         -- Input for OPCODE -> tells the ALU which command to execute
-        ctrl        : in  std_logic_vector(ctrl_bus_width - 1 downto 0);
+        ctrl        : in  std_logic_vector(ALU_CTRL_WIDTH - 1 downto 0);
         -- Inputs for both Operands
         operand1    : in  std_logic_vector(data_bus_width - 1 downto 0);
         operand2    : in  std_logic_vector(data_bus_width - 1 downto 0);
@@ -166,7 +166,7 @@ architecture behaviour of ALU is
 
             begin
 
-                case ctrl(7 downto 4) is
+                case ctrl is
                     WHEN "0000" => int_result <= RES_AND;
                     WHEN "0001" => int_result <= RES_OR;
                     WHEN "0010" => int_result <= RES_XOR;

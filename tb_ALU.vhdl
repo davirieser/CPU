@@ -53,7 +53,8 @@ architecture behaviour of tb_ALU is
 
 				wait for base_clock;
 
-                for sCount in 0 to (2 ** (2 * data_bus_width) - 1) loop
+				for sCount in 0 to (2 ** data_bus_width) loop
+				-- for sCount in 0 to (2 ** (2 * data_bus_width) - 1) loop
 
 					sTemp := std_logic_vector(unsigned(sTemp) + 1);
 
