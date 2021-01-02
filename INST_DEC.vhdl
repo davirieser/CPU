@@ -1,4 +1,5 @@
 library work;
+    use work.INST_DEC_pkg.all;
     use work.CPU_pkg.all;
 
 library ieee;
