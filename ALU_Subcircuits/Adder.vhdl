@@ -30,7 +30,6 @@
 
 library ieee;
 	use ieee.std_logic_1164.all;
-	-- use ieee.numeric_std.all;
 
 entity Adder is
 	generic(
@@ -47,7 +46,8 @@ end Adder;
 
 architecture behaviour of Adder is
 
-    signal carry    : std_logic_vector(regWidth - 1 downto 0);
+    signal carry    	: std_logic_vector(regWidth - 1 downto 0);
+    signal intern_add 	: std_logic_vector(regWidth - 1 downto 1);
 
 	begin
 
@@ -56,13 +56,11 @@ architecture behaviour of Adder is
 
         Adders : for i in 1 to regWidth - 1 generate
 
-            signal z : std_logic;
-
             begin
 
-                z          	<= inputA(i) xor inputB(i);
-                carry(i)    <= (not(z) and inputA(i)) or (z and carry(i - 1));
-                aOutput(i)  <= z xor carry(i-1);
+                intern_add(i)   <= inputA(i) xor inputB(i);
+                carry(i)    	<= (not(intern_add(i)) and inputA(i)) or (intern_add(i) and carry(i - 1));
+                aOutput(i)  	<= intern_add(i) xor carry(i-1);
 
         end generate Adders;
 

@@ -27,8 +27,6 @@ architecture behaviour of tb_CPU is
 	        data_bus    : inout std_logic_vector(data_bus_width - 1 downto 0) := (others => 'Z');
 	        ctrl_bus    : inout std_logic_vector(ctrl_bus_width - 1 downto 0) := (others => 'Z');
 	        addr_bus    : inout std_logic_vector(addr_bus_width - 1 downto 0) := (others => 'Z');
-	        -- Ready tells the CPU if it should work
-	        ready       : in std_logic;
 	        -- Interrupt-Request Pin -> Indicates that Interrupt has occured
 	        int_req     : in std_logic;
 	        -- Wait indicates that the CPU is not working
@@ -50,7 +48,6 @@ architecture behaviour of tb_CPU is
                                     data_bus    => data_bus_intern,
                                     ctrl_bus    => ctrl_bus_intern,
                                     addr_bus    => addr_bus_intern,
-                                    ready       => '0',
                                     int_req     => '0',
 									wait_o		=> wait_s,
                                     bus_enable  => '0',
@@ -69,6 +66,5 @@ architecture behaviour of tb_CPU is
 			end loop;
 			wait;
 		end process SCK;
-
 
 end behaviour;

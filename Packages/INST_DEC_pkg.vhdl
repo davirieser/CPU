@@ -35,7 +35,7 @@ package INST_DEC_pkg is
 
 	-- Add
 	constant ADD_INST	: std_logic_vector(OPCODE_BITS - 1 downto 0)
-		:= (2 or 0 => '1',others => '0');
+		:= (2 | 0 => '1',others => '0');
 	constant ADD_CODES	: CODE_TYPE := (0 => PRC_INCR,others => (others => 'Z'));
 
 	-- Subtract
@@ -50,12 +50,12 @@ package INST_DEC_pkg is
 
 	-- Shift Right
 	constant SHR_INST	: std_logic_vector(OPCODE_BITS - 1 downto 0)
-		:= (3 or 0 => '1',others => '0');
+		:= (3 | 0 => '1',others => '0');
 	constant SHR_CODES	: CODE_TYPE := (0 => PRC_INCR,others => (others => 'Z'));
 
 	-- Two's Complement
 	constant TWC_INST	: std_logic_vector(OPCODE_BITS - 1 downto 0)
-		:= (3 or 1 => '1',others => '0');
+		:= (3 | 1 => '1',others => '0');
 	constant TWC_CODES	: CODE_TYPE := (0 => PRC_INCR,others => (others => 'Z'));
 
 	-- Wait For Interrupt => Do Nothing (not even advance Program Counter)

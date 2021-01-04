@@ -10,9 +10,9 @@ entity NVIC is
         clk         : in std_logic;
         int_in      : in std_logic_vector(NUM_INTERRUPTS - 1 downto 0);
         int_clear   : in std_logic_vector(NUM_INTERRUPTS - 1 downto 0);
-        int_request : out std_logic;
         int_addr_o  : out std_logic_vector(addr_bus_width - 1 downto 0);
-        int_num_out : out std_logic_vector(addr_bus_width - 1 downto 0)
+        int_num_out : out std_logic_vector(addr_bus_width - 1 downto 0);
+        ctrl_bus    : inout std_logic_vector(ctrl_bus_width - 1 downto 0)
     );
 end NVIC;
 
@@ -80,11 +80,11 @@ architecture behaviour of NVIC is
 
                     if (interrupt_change = '1') then
 
-                        int_request <= '1';
+                        ctrl_bus(INT_REQ_B) <= '1';
 
                     else
 
-                        int_request <= '0';
+                        ctrl_bus(INT_REQ_B) <= '0';
 
                     end if;
 

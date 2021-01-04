@@ -128,12 +128,13 @@ package CPU_pkg is
 
 	-- Number of Bits for an OPCODE
 	constant OPCODE_BITS	: integer	:= 8;
-	-- Number of Bits in a Command for the Operators
-	constant OPER_BITS		: integer 	:= 2 * data_bus_width;
 	-- Number of OPCODES
 	constant NUM_OPCODES	: integer	:= 2 ** OPCODE_BITS;
+	
+	-- Number of Bits in a Command for the Operators
+	constant OPER_BITS		: integer 	:= 2 * data_bus_width;
 	-- Actual Length of the Command including OPCODE and Operators
-	constant CMD_LENGTH		: integer	:= data_bus_width + OPER_BITS;
+	constant CMD_LENGTH		: integer	:= OPCODE_BITS + OPER_BITS;
 
 	constant NUM_MICRO_CYC	: integer	:= 3;
 	constant NUM_MICRO_CMD	: integer	:= 2 ** NUM_MICRO_CYC;

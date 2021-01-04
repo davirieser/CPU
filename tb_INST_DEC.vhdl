@@ -13,25 +13,30 @@ architecture behaviour of tb_INST_DEC is
 
     component INST_DEC is
         port(
-            clk         : in std_logic;
+            -- This is basically a Lookup-Table so it needs
+            -- neither a Reset nor a Clock
             inst        : in std_logic_vector(OPCODE_BITS - 1 downto 0);
             micro_cyc   : in std_logic_vector(NUM_MICRO_CYC - 1 downto 0);
             ctrl_bus    : inout std_logic_vector(ctrl_bus_width - 1 downto 0)
         );
     end component INST_DEC;
 
-    -- 1 + .. => For Clock
-    constant size : integer := 1 + OPCODE_BITS + NUM_MICRO_CYC;
+    constant size       : integer := OPCODE_BITS + NUM_MICRO_CYC;
 
     signal sTemp 		: std_logic_vector(size - 1 downto 0) := (others => '0');
-    signal sCtrl        : std_logic_vector(ctrl_bus_width - 1 downto 0);
+    signal sCtrl        : std_logic_vector(ctrl_bus_width - 1 downto 0) := (others => 'Z');
+
+    signal sInst        : std_logic_vector(size - 1 downto NUM_MICRO_CYC) := (others => '0');
+    signal sMicro_cyc   : std_logic_vector(NUM_MICRO_CYC - 1 downto 0) := (others => '0');
 
     begin
 
+        sInst      <= sTemp(size - 1 downto NUM_MICRO_CYC);
+        sMicro_cyc <= sTemp(NUM_MICRO_CYC - 1 downto 0);
+
         uut : entity work.INST_DEC port map(
-                                    clk         => sTemp(NUM_MICRO_CYC),
-                                    inst        => sTemp(size - 1 downto size - OPCODE_BITS),
-                                    micro_cyc   => sTemp(NUM_MICRO_CYC - 1 downto 0),
+                                    inst        => sInst,
+                                    micro_cyc   => sMicro_cyc,
                                     ctrl_bus    => sCtrl
                                 );
 
