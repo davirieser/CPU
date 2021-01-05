@@ -13,9 +13,10 @@ architecture behaviour of tb_INST_DEC is
 
     component INST_DEC is
         port(
-            -- This is basically a Lookup-Table so it needs
-            -- neither a Reset nor a Clock
+            -- This is basically a Lookup-Table so it neither needs a
+            -- Reset nor a Clock
             inst        : in std_logic_vector(OPCODE_BITS - 1 downto 0);
+            flags_in    : in std_logic_vector(NUM_FLAGS - 1 downto 0);
             micro_cyc   : in std_logic_vector(NUM_MICRO_CYC - 1 downto 0);
             ctrl_bus    : inout std_logic_vector(ctrl_bus_width - 1 downto 0)
         );
@@ -36,6 +37,7 @@ architecture behaviour of tb_INST_DEC is
 
         uut : entity work.INST_DEC port map(
                                     inst        => sInst,
+                                    flags_in    => (others => '0'),
                                     micro_cyc   => sMicro_cyc,
                                     ctrl_bus    => sCtrl
                                 );
@@ -44,7 +46,7 @@ architecture behaviour of tb_INST_DEC is
 
 			begin
 
-                for sCount in 0 to (2 ** size) loop
+                for sCount in 0 to ((2 ** size) - 1) loop
 
 					sTemp <= std_logic_vector(unsigned(sTemp) + 1);
 

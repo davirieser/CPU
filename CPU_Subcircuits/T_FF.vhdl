@@ -3,7 +3,6 @@ library ieee;
 
 entity T_FF is
     port(
-        clk     : in std_logic;
         T       : in std_logic;
         outp    : out std_logic
     );
@@ -15,13 +14,13 @@ architecture structure of T_FF is
 
     begin
 
-        FF : process(clk)
+        FF : process(T)
 
             begin
 
-                if rising_edge(clk) then
+                if rising_edge(T) then
 
-                    int_out <= (not T) and int_out;
+                    int_out <= (not int_out);
 
                 end if;
 

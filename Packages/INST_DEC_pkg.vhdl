@@ -13,10 +13,41 @@ package INST_DEC_pkg is
     constant NOP_INST   : std_logic_vector(OPCODE_BITS - 1 downto 0) := (others => '0');
 	constant NOP_CODES	: CODE_TYPE := (0 => PRC_INCR,others => (others => 'Z'));
 
-	-- Move
-	constant MOV_INST	: std_logic_vector(OPCODE_BITS - 1 downto 0)
+	-- Move from Memory to Register A
+	constant MOVA_INST	: std_logic_vector(OPCODE_BITS - 1 downto 0)
 		:= (0 => '1',others => '0');
-	constant MOV_CODES	: CODE_TYPE := (0 => PRC_INCR,others => (others => 'Z'));
+	constant MOVA_CODES	: CODE_TYPE
+		:= (0 => PRC_INCR,
+			1 => (MEM_RD_B => '1',REG_AIN_B => '1',others => 'Z'),
+			others => (others => 'Z')
+		);
+
+	-- Move from Memory to Register A
+	constant MOVB_INST	: std_logic_vector(OPCODE_BITS - 1 downto 0)
+		:= (0 => '1',others => '0');
+	constant MOVB_CODES	: CODE_TYPE
+		:= (0 => PRC_INCR,
+			1 => (MEM_RD_B => '1',REG_BIN_B => '1',others => 'Z'),
+			others => (others => 'Z')
+		);
+
+	-- Store Value from Register A in Memory
+	constant STOA_INST	: std_logic_vector(OPCODE_BITS - 1 downto 0)
+		:= (0 => '1',others => '0');
+	constant STOA_CODES	: CODE_TYPE
+		:= (0 => PRC_INCR,
+			1 => (MEM_WRI_B => '1',REG_AOU_B => '1',others => 'Z'),
+			others => (others => 'Z')
+		);
+
+	-- Store Value from Register B in Memory
+	constant STOB_INST	: std_logic_vector(OPCODE_BITS - 1 downto 0)
+		:= (0 => '1',others => '0');
+	constant STOB_CODES	: CODE_TYPE
+		:= (0 => PRC_INCR,
+			1 => (MEM_WRI_B => '1',REG_BOU_B => '1',others => 'Z'),
+			others => (others => 'Z')
+		);
 
 	-- Jump Equals Zero => Check if Zero Flag is set and jump to Address
 	constant JEZ_INST	: std_logic_vector(OPCODE_BITS - 1 downto 0)

@@ -8,15 +8,14 @@ entity ALU is
     port(
         -- Input for OPCODE -> tells the ALU which command to execute
         ctrl        : in  std_logic_vector(ALU_CTRL_WIDTH - 1 downto 0);
-        -- Inputs for both Operands
+        -- Inputs for both Operands => A-, and B-Register
         operand1    : in  std_logic_vector(data_bus_width - 1 downto 0);
         operand2    : in  std_logic_vector(data_bus_width - 1 downto 0);
-        -- Flags for the Arithmetic Operations
-        oper_flags  : in  std_logic_vector(oper_flag_num - 1 downto 0);
-        -- result of the Operation
-        result      : out std_logic_vector(data_bus_width - 1 downto 0);
+        -- Busses
+        ctrl_bus    : inout std_logic_vector(ctrl_bus_width - 1 downto 0);
+        data_bus    : inout std_logic_vector(data_bus_width - 1 downto 0);
         -- Status Output Flags -> See CPU_pkg
-        status_out  : out std_logic_vector(numStatReg - 1 downto 0)
+        status_out  : out std_logic_vector(NUM_FLAGS - 1 downto 0)
     );
 end ALU;
 
@@ -47,7 +46,7 @@ architecture behaviour of ALU is
 
     signal int_result       : std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
 
-    signal status_out_int   : std_logic_vector(numStatReg - 1 downto 0) := (others => '0');
+    signal status_out_int   : std_logic_vector(NUM_FLAGS - 1 downto 0) := (others => '0');
 
     component Adder is
 		generic(
@@ -99,12 +98,6 @@ architecture behaviour of ALU is
         RES_NOT_A   <= not operand1;
         RES_NOT_B   <= not operand2;
 
-        TEMP_PARITY(0) <= int_result(0);
-
-        Parity : for i in 1 to data_bus_width - 1 generate
-            TEMP_PARITY(i) <= int_result(i) xor TEMP_PARITY(i-1);
-        end generate Parity;
-
         int_adder : entity work.Adder
     		generic map(
     			regWidth 	=> data_bus_width
@@ -148,41 +141,66 @@ architecture behaviour of ALU is
             )
         ;
 
+        TEMP_PARITY(0) <= int_result(0);
+
+        Parity : for i in 1 to data_bus_width - 1 generate
+            TEMP_PARITY(i) <= int_result(i) xor TEMP_PARITY(i-1);
+        end generate Parity;
+
         parity_gen : process(TEMP_PARITY)
 
             begin
 
-                if(int_result(0) = 'Z') then
-                    RES_EVEN_PARITY <= '1';
-                    RES_ODD_PARITY <= '0';
-                else
+                -- if(int_result(0) = 'Z') then
+                --     RES_EVEN_PARITY <= '1';
+                --     RES_ODD_PARITY <= '0';
+                -- else
                     RES_EVEN_PARITY <= TEMP_PARITY(data_bus_width - 1);
                     RES_ODD_PARITY <= not RES_EVEN_PARITY;
-                end if;
+                -- end if;
 
         end process parity_gen;
 
-        output_gen : process(ctrl,operand1,operand2)
+        output_gen : process(ctrl_bus,operand1,operand2)
 
             begin
 
-                case ctrl is
-                    WHEN "0000" => int_result <= RES_AND;
-                    WHEN "0001" => int_result <= RES_OR;
-                    WHEN "0010" => int_result <= RES_XOR;
-                    WHEN "0011" => int_result <= RES_NOT_A;
-                    WHEN "0100" => int_result <= RES_NOT_B;
-                    WHEN "0101" => int_result <= ADD_OUT;
-                    WHEN "0110" => int_result <= SUB_OUT;
-                    WHEN "0111" => int_result <= SHIFT_OUT;
-                    WHEN "1000" => int_result <= (data_bus_width - 1 downto 2 => '0') & RES_ODD_PARITY & RES_EVEN_PARITY;
-                    -- Auf 'Z' gesetzt damit die CPU den Datenbus nicht durchgehend besetzt
-                    WHEN others => int_result <= (others => 'Z');
-                end case;
+                if (ctrl_bus(ALU_RSO_B) = '1') then
+
+                    if (ctrl = AND_CODE) then
+                        int_result <= RES_AND;
+                    else
+                        int_result <= (others => 'Z');
+                    end if;
+
+                    -- case ctrl is
+                    --     WHEN AND_CODE       => int_result <= RES_AND;
+                    --     WHEN OR_CODE        => int_result <= RES_OR;
+                    --     WHEN XOR_CODE       => int_result <= RES_XOR;
+                    --     WHEN NOT_A_CODE     => int_result <= RES_NOT_A;
+                    --     WHEN NOT_B_CODE     => int_result <= RES_NOT_B;
+                    --     WHEN ADD_CODE       => int_result <= ADD_OUT;
+                    --     WHEN SUB_CODE       => int_result <= SUB_OUT;
+                    --     WHEN SHIFT_CODE     => int_result <= SHIFT_OUT;
+                    --     WHEN PARITY_CODE    => int_result <= (data_bus_width - 1 downto 2 => '0') & RES_ODD_PARITY & RES_EVEN_PARITY;
+                    --     -- Auf 'Z' gesetzt damit die CPU den Datenbus nicht durchgehend besetzt
+                    --     WHEN others         => int_result <= (others => 'Z');
+                    -- end case;
+
+                end if;
+
+                if (ctrl_bus(ALU_FLAG_B) = '1') then
+
+                    status_out <= status_out_int;
+
+                else
+
+                    status_out <= (others => '0');
+
+                end if;
 
         end process output_gen;
 
-        status_out <= status_out_int;
-        result <= int_result;
+        data_bus <= int_result;
 
 end behaviour;

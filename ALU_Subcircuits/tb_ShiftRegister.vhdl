@@ -7,7 +7,7 @@ end tb_ShiftRegister;
 
 architecture behaviour of tb_ShiftRegister is
 
-	constant regWidth 	: integer := 4;
+	constant regWidth 	: integer := 5;
 
 	signal sInputA 		: std_logic_vector(regWidth - 1 downto 0) := (others => '0');
 	signal sInputB 		: std_logic_vector(regWidth - 1 downto 0) := (others => '0');
@@ -53,7 +53,7 @@ architecture behaviour of tb_ShiftRegister is
 
 				wait for 10 ns;
 
-                for sCount in 0 to ((2**((2*regWidth) + 1)) - 2) loop
+                for sCount in 0 to ((2 ** (2 * regWidth)) - 1) loop
 
 					sTemp := std_logic_vector( unsigned(sTemp) + 1 );
 

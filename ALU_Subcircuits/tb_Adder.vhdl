@@ -7,7 +7,7 @@ end tb_Adder;
 
 architecture behaviour of tb_Adder is
 
-	constant regWidth 	: integer := 3;
+	constant regWidth 	: integer := 5;
 
 	signal sCarryIn 	: std_logic := '0';
 	signal sInputA 		: std_logic_vector(regWidth - 1 downto 0) := (others => '0');
@@ -56,7 +56,7 @@ architecture behaviour of tb_Adder is
 
 				wait for 10 ns;
 
-                for sCount in 0 to ((2**(2*regWidth)) - 2) loop
+                for sCount in 0 to ((2 ** (2 * regWidth)) - 1) loop
 
 					sTemp := std_logic_vector( unsigned(sTemp) + 1 );
 

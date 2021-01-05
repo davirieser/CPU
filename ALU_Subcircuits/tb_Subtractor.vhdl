@@ -55,7 +55,7 @@ architecture behaviour of tb_Subtractor is
 
 				wait for 10 ns;
 
-                for sCount in 0 to ((2**(2*regWidth)) - 2) loop
+                for sCount in 0 to ((2 ** (2 * regWidth)) - 1) loop
 
 					sTemp := std_logic_vector( unsigned(sTemp) + 1 );
 

@@ -47,7 +47,7 @@ architecture structure of CPU is
 
     signal stack_pointer    : std_logic_vector(addr_bus_width - 1 downto 0) := (others => '0');
     signal program_counter  : std_logic_vector(addr_bus_width - 1 downto 0) := (others => '0');
-    signal status_registers : std_logic_vector(numStatReg - 1 downto 0) := (others => '0');
+    signal status_registers : std_logic_vector(NUM_FLAGS - 1 downto 0) := (others => '0');
 
     signal memory_address_r : std_logic_vector(addr_bus_width - 1 downto 0) := (others => '0');
     signal memory_data_reg  : std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
@@ -63,15 +63,14 @@ architecture structure of CPU is
         port(
             -- Input for OPCODE -> tells the ALU which command to execute
             ctrl        : in  std_logic_vector(ALU_CTRL_WIDTH - 1 downto 0);
-            -- Inputs for both Operands
+            -- Inputs for both Operands => A-, and B-Register
             operand1    : in  std_logic_vector(data_bus_width - 1 downto 0);
             operand2    : in  std_logic_vector(data_bus_width - 1 downto 0);
-            -- Flags for the Arithmetic Operations
-            oper_flags  : in  std_logic_vector(oper_flag_num - 1 downto 0);
-            -- result of the Operation
-            result      : out std_logic_vector(data_bus_width - 1 downto 0);
+            -- Busses
+            ctrl_bus    : inout std_logic_vector(ctrl_bus_width - 1 downto 0);
+            data_bus    : inout std_logic_vector(data_bus_width - 1 downto 0);
             -- Status Output Flags -> See CPU_pkg
-            status_out  : out std_logic_vector(numStatReg - 1 downto 0)
+            status_out  : out std_logic_vector(NUM_FLAGS - 1 downto 0)
         );
     end component ALU;
 
@@ -87,9 +86,8 @@ architecture structure of CPU is
 
     component T_FF is
         port(
-            clk     : std_logic;
-            T       : std_logic;
-            outp    : std_logic
+            T       : in std_logic;
+            outp    : out std_logic
         );
     end component T_FF;
 
@@ -112,7 +110,6 @@ architecture structure of CPU is
             begin
 
                 clk_div : entity work.T_FF port map(
-                    clk     => clk_divs(0),
                     T       => clk_divs(i),
                     outp    => clk_divs(i + 1)
                 );
@@ -125,8 +122,8 @@ architecture structure of CPU is
             ctrl        => ALU_CTRL_REG,
             operand1    => REGS(0),
             operand2    => REGS(1),
-            oper_flags  => (others => '0'),
-            result      => data_bus_intern,
+            ctrl_bus    => ctrl_bus_intern,
+            data_bus    => data_bus_intern,
             status_out  => status_registers
         );
 
@@ -144,7 +141,7 @@ architecture structure of CPU is
 
             begin
 
-                hold_a <=  '0';
+                hold_a <= '0';
 
                 if (hold = '1') then
 

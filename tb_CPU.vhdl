@@ -2,6 +2,7 @@ use work.CPU_pkg.all;
 
 library ieee;
 	use ieee.std_logic_1164.all;
+	use ieee.numeric_std.all;
 
 entity tb_CPU is
 end tb_CPU;
@@ -55,10 +56,30 @@ architecture behaviour of tb_CPU is
 									hold_a		=> hold_a_s
                                 );
 
+		INST_GEN : process
+
+			variable INST	: integer := 0;
+
+			begin
+
+				for i in 0 to ((2 ** OPCODE_BITS) - 1) loop
+
+					INST := INST + 4;
+
+					ctrl_bus_intern <= std_logic_vector(to_unsigned(INST,ctrl_bus_width));
+
+					wait for base_clock;
+
+				end loop;
+
+				wait;
+
+		end process INST_GEN;
+
         SCK : process
 		begin
 			clk_s <= '1';
-			for clk_cnt_s in 0 to 10 loop
+			for clk_cnt_s in 0 to (2 ** OPCODE_BITS) loop
 				clk_s 		<= not clk_s;
 				wait for base_clock / 2;
 				clk_s 		<= not clk_s;
