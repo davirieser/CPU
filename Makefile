@@ -44,21 +44,24 @@ all: \
 	$(patsubst %.vhdl, %, $(filter-out %_pkg tb_%,$(wildcard */*.vhdl) $(wildcard *.vhdl)))
 
 # ------------------------------------------------------------------------------
-# Analyze Packages
+# Analyze all Packages
+.PHONY: pkg
+pkg: $(patsubst %.vhdl, %, $(wildcard */*_pkg.vhdl) $(wildcard *_pkg.vhdl))
 
+
+# ------------------------------------------------------------------------------
+# Analyze Package
 %$(PACKAGE_SUFFIX) : %$(PACKAGE_SUFFIX).$(SOURCE_FILE_EXT)
 	@echo "Analyzing Package-File $*$(PACKAGE_SUFFIX).$(SOURCE_FILE_EXT)"
 	@-$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $*$(PACKAGE_SUFFIX).$(SOURCE_FILE_EXT)
 
 # ------------------------------------------------------------------------------
 # Ignore Testbenches => Will be called by their respective Test-File
-
 $(TESTBENCH_PREFIX)% : $(TESTBENCH_PREFIX)%.$(SOURCE_FILE_EXT)
 	@echo "Ignoring Testbench $*"
 
 # ------------------------------------------------------------------------------
 # Rule for VHDL-Files which also have a Testbench
-
 % : %.$(SOURCE_FILE_EXT) $(TESTBENCH_PREFIX)%.$(SOURCE_FILE_EXT)
 	@echo "Analyzing and elobarating $*"
 	-$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $*.$(SOURCE_FILE_EXT)

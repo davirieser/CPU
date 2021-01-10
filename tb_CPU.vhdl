@@ -9,11 +9,11 @@ end tb_CPU;
 
 architecture behaviour of tb_CPU is
 
-    signal clk_s    : std_logic         := '0';
-    signal reset    : std_logic         := '0';
+    signal clk_s    : std_logic		:= '0';
+    signal reset    : std_logic		:= '0';
 
-	signal hold_a_s	: std_logic;
-	signal wait_s	: std_logic;
+	signal hold_a_s	: std_logic		:= '0';
+	signal wait_s	: std_logic		:= '0';
 
     signal data_bus_intern  : std_logic_vector(data_bus_width - 1 downto 0);
     signal ctrl_bus_intern  : std_logic_vector(ctrl_bus_width - 1 downto 0);
@@ -44,41 +44,21 @@ architecture behaviour of tb_CPU is
     begin
 
         uut : entity work.CPU port map(
-                                    reset       => reset,
-                                    clk	    	=> clk_s,
-                                    data_bus    => data_bus_intern,
-                                    ctrl_bus    => ctrl_bus_intern,
-                                    addr_bus    => addr_bus_intern,
-                                    int_req     => '0',
-									wait_o		=> wait_s,
-                                    bus_enable  => '0',
-									hold		=> '0',
-									hold_a		=> hold_a_s
-                                );
-
-		INST_GEN : process
-
-			variable INST	: integer := 0;
-
-			begin
-
-				for i in 0 to ((2 ** OPCODE_BITS) - 1) loop
-
-					INST := INST + 4;
-
-					ctrl_bus_intern <= std_logic_vector(to_unsigned(INST,ctrl_bus_width));
-
-					wait for base_clock;
-
-				end loop;
-
-				wait;
-
-		end process INST_GEN;
+            reset       => reset,
+            clk	    	=> clk_s,
+            data_bus    => data_bus_intern,
+            ctrl_bus    => ctrl_bus_intern,
+            addr_bus    => addr_bus_intern,
+            int_req     => '0',
+			wait_o		=> wait_s,
+            bus_enable  => '0',
+			hold		=> '0',
+			hold_a		=> hold_a_s
+        );
 
         SCK : process
 		begin
-			clk_s <= '1';
+			wait for base_clock / 2;
 			for clk_cnt_s in 0 to (2 ** OPCODE_BITS) loop
 				clk_s 		<= not clk_s;
 				wait for base_clock / 2;
