@@ -46,6 +46,8 @@ architecture behaviour of tb_INST_DEC is
 
 			begin
 
+                wait for base_clock;
+
                 for sCount in 0 to ((2 ** size) - 1) loop
 
 					sTemp <= std_logic_vector(unsigned(sTemp) + 1);
