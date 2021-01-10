@@ -12,6 +12,7 @@ architecture behaviour of tb_ALU is
     signal result_int   	: std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
     signal stat_out_int 	: std_logic_vector(NUM_FLAGS - 1 downto 0) := (others => '0');
 	signal ctrl_bus_intern	: std_logic_vector(ctrl_bus_width - 1 downto 0) := (others => '0');
+	signal flags			: std_logic_vector(NUM_OPER_FLAGS - 1 downto 0) := (others => '0');
 
 	signal sOperand1		: std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
 	signal sOperand2		: std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
@@ -20,6 +21,8 @@ architecture behaviour of tb_ALU is
 	    port(
 	        -- Input for OPCODE -> tells the ALU which command to execute
 	        ctrl        : in  std_logic_vector(ALU_CTRL_WIDTH - 1 downto 0);
+	        -- ALU Operation Flags => See CPU_pkg
+	        flags       : in std_logic_vector(NUM_OPER_FLAGS - 1 downto 0);
 	        -- Inputs for both Operands => A-, and B-Register
 	        operand1    : in  std_logic_vector(data_bus_width - 1 downto 0);
 	        operand2    : in  std_logic_vector(data_bus_width - 1 downto 0);
@@ -35,6 +38,7 @@ architecture behaviour of tb_ALU is
 
         uut : entity work.ALU port map(
                                     ctrl        => (others => '0'),
+									flags		=> flags,
                                     operand1    => sOperand1,
                                     operand2    => sOperand2,
 									ctrl_bus	=> ctrl_bus_intern,

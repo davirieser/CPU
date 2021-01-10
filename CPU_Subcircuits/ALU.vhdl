@@ -8,6 +8,8 @@ entity ALU is
     port(
         -- Input for OPCODE -> tells the ALU which command to execute
         ctrl        : in  std_logic_vector(ALU_CTRL_WIDTH - 1 downto 0);
+        -- ALU Operation Flags => See CPU_pkg
+        flags       : in std_logic_vector(NUM_OPER_FLAGS - 1 downto 0);
         -- Inputs for both Operands => A-, and B-Register
         operand1    : in  std_logic_vector(data_bus_width - 1 downto 0);
         operand2    : in  std_logic_vector(data_bus_width - 1 downto 0);
@@ -129,14 +131,13 @@ architecture behaviour of ALU is
         int_shift   : entity work.ShiftRegister
             generic map(
                 regWidth    => data_bus_width,
-                -- TODO Wo anders ausrechenen
-                crtl_bits   => 1
+                crtl_bits   => WORD_ADDR_DIST
             )
             port map(
                 inputA      => operand1,
                 inputB      => operand2,
                 -- TODO cyclic Buffer Flag
-                cyclicBuffer=> '0',
+                cyclicBuffer=> flags(CYC_BUFFER_ENA),
                 aOutput     => SHIFT_OUT
             )
         ;
@@ -151,17 +152,17 @@ architecture behaviour of ALU is
 
             begin
 
-                -- if(int_result(0) = 'Z') then
-                --     RES_EVEN_PARITY <= '1';
-                --     RES_ODD_PARITY <= '0';
-                -- else
+                if(int_result(0) = 'Z') then
+                    RES_EVEN_PARITY <= '1';
+                    RES_ODD_PARITY <= '0';
+                else
                     RES_EVEN_PARITY <= TEMP_PARITY(data_bus_width - 1);
                     RES_ODD_PARITY <= not RES_EVEN_PARITY;
-                -- end if;
+                end if;
 
         end process parity_gen;
 
-        output_gen : process(ctrl_bus,operand1,operand2)
+        output_gen : process(ctrl,ctrl_bus,operand1,operand2)
 
             begin
 
@@ -169,6 +170,22 @@ architecture behaviour of ALU is
 
                     if (ctrl = AND_CODE) then
                         int_result <= RES_AND;
+                    elsif (ctrl = OR_CODE) then
+                        int_result <= RES_OR;
+                    elsif (ctrl = XOR_CODE) then
+                        int_result <= RES_XOR;
+                    elsif (ctrl = NOT_A_CODE) then
+                        int_result <= RES_NOT_A;
+                    elsif (ctrl = NOT_B_CODE) then
+                        int_result <= RES_NOT_B;
+                    elsif (ctrl = ADD_CODE) then
+                        int_result <= ADD_OUT;
+                    elsif (ctrl = SUB_CODE) then
+                        int_result <= SUB_OUT;
+                    elsif (ctrl = SHIFT_CODE) then
+                        int_result <= SHIFT_OUT;
+                    elsif (ctrl = PARITY_CODE) then
+                        int_result <= (data_bus_width - 1 downto 2 => '0') & RES_ODD_PARITY & RES_EVEN_PARITY;
                     else
                         int_result <= (others => 'Z');
                     end if;
@@ -187,16 +204,16 @@ architecture behaviour of ALU is
                     --     WHEN others         => int_result <= (others => 'Z');
                     -- end case;
 
+                else
+
+                    int_result <= (others => 'Z');
+
                 end if;
 
                 if (ctrl_bus(ALU_FLAG_B) = '1') then
-
                     status_out <= status_out_int;
-
-                else
-
+                elsif (ctrl_bus(CLR_STF_B) = '1') then
                     status_out <= (others => '0');
-
                 end if;
 
         end process output_gen;
