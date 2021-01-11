@@ -42,11 +42,13 @@ architecture structure of ProgCounter is
 
         -- Multiplexer Output -----------------------------------
 
-        Counter : process(clk)
+        Counter : process(ctrl_bus)
 
             variable prog_count_v   : std_logic_vector(addr_bus_width - 1 downto 0) := PROG_START;
 
             begin
+
+                -- report "Program Counter Operation";
 
                 cnt_overf <= '0';
                 -- prog_count_v := std_logic_vector(unsigned(prog_count_s) + 1);

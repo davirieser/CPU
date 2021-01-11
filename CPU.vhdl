@@ -32,9 +32,9 @@ architecture structure of CPU is
 
     -- Clock Declarations
 
-    signal master_clk   : std_logic;
+    signal master_clk   : std_logic := '0';
     signal clk_divs     : std_logic_vector(NUM_MICRO_CYC downto 0) := (others => '0');
-    signal inst_clk     : std_logic;
+    signal inst_clk     : std_logic := '0';
 
     -- Bus Declarations
 
@@ -107,6 +107,15 @@ architecture structure of CPU is
         );
     end component CLK_DIVIDER;
 
+    component MemoryManager is
+        port (
+            mem_addr_r  : in std_logic_vector(addr_bus_width - 1 downto 0);
+            data_bus    : inout std_logic_vector(data_bus_width - 1 downto 0);
+            addr_bus    : inout std_logic_vector(addr_bus_width - 1 downto 0);
+            ctrl_bus    : inout std_logic_vector(ctrl_bus_width - 1 downto 0)
+        );
+    end component MemoryManager;
+
     begin
 
         -- Clock Instantiation
@@ -115,7 +124,7 @@ architecture structure of CPU is
 
         master_clk                  <= clk;
         ctrl_bus_intern(RESET_CTL)  <= reset;
-        ctrl_bus_intern(CLOCK_CTL)  <= inst_clk;
+        ctrl_bus_intern(CLOCK_CTL)  <= master_clk;
 
         clk_divs(0) <= clk;
         inst_clk    <= clk_divs(NUM_MICRO_CYC);
@@ -142,7 +151,6 @@ architecture structure of CPU is
 
         clk_div_ins : entity work.CLK_DIVIDER port map(
             reset   => ctrl_bus_intern(INST_OVER),
-            -- reset => '0',
             clk     => clk,
             outp    => clk_divs(NUM_MICRO_CYC downto 1)
         );
@@ -155,17 +163,17 @@ architecture structure of CPU is
             cnt_overf => prog_cnt_ovf_reg
         );
 
-        -- mmu : entity work.MemoryManager port map(
-        --     ena         => '0',
-        --     rd_wr       => '0',
-        --     address     => addr_bus_intern,
-        --     data_out    => data_bus_intern
-        -- );
+        mmu : entity work.MemoryManager port map(
+            mem_addr_r  => memory_address_r,
+            data_bus    => data_bus_intern,
+            addr_bus    => addr_bus_intern,
+            ctrl_bus    => ctrl_bus_intern
+        );
 
         -- Helper Processes ----------------------------------
 
         -- Control Register Output Process
-        p_ctrl : process(master_clk)
+        p_ctrl : process(ctrl_bus_intern,data_bus_intern)
 
             variable temp : std_logic_vector(data_bus_width - 1 downto 0);
 
@@ -186,18 +194,19 @@ architecture structure of CPU is
                 end if;
                 -- Memory Register Control
                 if (ctrl_bus_intern(MEM_ARO_B) = '1') then
-                    data_bus_intern <= memory_address_r(data_bus_width - 1 downto 0);
+                    data_bus_intern <= memory_address_r(addr_bus_width - 1 downto addr_bus_width - data_bus_width);
                 end if;
                 if (ctrl_bus_intern(MEM_ARI_B) = '1') then
-                    memory_address_r(data_bus_width - 1 downto 0) <= data_bus_intern;
+                    -- report "MEM Address In";
+                    memory_address_r <= data_bus_intern & (addr_bus_width - data_bus_width - 1 downto 0 => '0');
                 end if;
 
                 -- Instruction Register Control
                 if (ctrl_bus_intern(INST_R_OUT) = '1') then
-                    data_bus <= instruction_reg;
+                    data_bus_intern <= instruction_reg;
                 end if;
                 if (ctrl_bus_intern(INST_R_IN) = '1') then
-                    instruction_reg <= data_bus;
+                    instruction_reg <= data_bus_intern;
                 end if;
 
                 -- Register Swap Control
@@ -278,26 +287,40 @@ architecture structure of CPU is
         -- end process p_bus;
 
         -- (Asynchronoous) Reset Process
-        p_reset : process(ctrl_bus)
-
-            begin
-
-                if rising_edge(ctrl_bus(RESET_CTL)) then
-
-                    stack_pointer       <= STACK_POINTER_START;
-                    program_counter     <= PROG_START;
-                    status_registers    <= (others => '0');
-
-                    memory_address_r    <= (others => '0');
-
-                    instruction_reg     <= (others => '0');
-
-                    REGS                <= (others => (others => '0'));
-                    ALU_CTRL_REG        <= (others => '0');
-                    ALU_IN_FLAGS        <= (others => '0');
-
-                end if;
-
-        end process p_reset;
+        -- p_reset : process(ctrl_bus)
+        --
+        --     begin
+        --
+        --         if rising_edge(ctrl_bus(RESET_CTL)) then
+        --
+        --             stack_pointer       <= STACK_POINTER_START;
+        --             program_counter     <= PROG_START;
+        --             status_registers    <= (others => '0');
+        --
+        --             memory_address_r    <= (others => '0');
+        --
+        --             instruction_reg     <= (others => '0');
+        --
+        --             REGS                <= (others => (others => '0'));
+        --             ALU_CTRL_REG        <= (others => '0');
+        --             ALU_IN_FLAGS        <= (others => '0');
+        --
+        --         else
+        --
+        --             stack_pointer       <= (others => 'Z');
+        --             program_counter     <= (others => 'Z');
+        --             status_registers    <= (others => 'Z');
+        --
+        --             memory_address_r    <= (others => 'Z');
+        --
+        --             instruction_reg     <= (others => 'Z');
+        --
+        --             REGS                <= (others => (others => 'Z'));
+        --             ALU_CTRL_REG        <= (others => 'Z');
+        --             ALU_IN_FLAGS        <= (others => 'Z');
+        --
+        --         end if;
+        --
+        -- end process p_reset;
 
 end structure;

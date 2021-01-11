@@ -101,20 +101,20 @@ package CPU_pkg is
 	constant NUM_MEMORY_DEVICES	: integer	:= 3;
 
 	-- Type Declarations -------------------------------------------------------
-	type MEMORY is record
+	type MEMORY_T is record
 		SIZE		: integer;
 		ADDR_BITS	: integer;
 		MEM_START	: std_logic_vector(addr_bus_width - 1 downto 0);
 		MEM_END		: std_logic_vector(addr_bus_width - 1 downto 0);
-	end record MEMORY;
-	type MEMORIES is array(NUM_MEMORY_DEVICES - 1 downto 0) of MEMORY;
+	end record MEMORY_T;
+	type MEMORY_MAP_T is array(NUM_MEMORY_DEVICES - 1 downto 0) of MEMORY_T;
 	----------------------------------------------------------------------------
 
 	-- ROM_SIZE and RAM_SIZE will be multiplied by data_bus_width
 	constant ROM_ADDR_BITS	: integer 	:= 8;
 	constant ROM_SIZE		: integer 	:= 2 ** ROM_ADDR_BITS;
 	constant ROM_MEM_INDEX	: integer	:= 0;
-	constant ROM_MEMORY		: MEMORY	:= (
+	constant ROM_MEMORY		: MEMORY_T	:= (
 		SIZE => ROM_SIZE,
 		ADDR_BITS => ROM_ADDR_BITS,
 		MEM_START => (others => '0'),
@@ -127,7 +127,7 @@ package CPU_pkg is
 	constant RAM_ADDR_BITS	: integer 	:= 8;
     constant RAM_SIZE       : integer   := 2 ** RAM_ADDR_BITS;
 	constant RAM_MEM_INDEX	: integer	:= 1;
-	constant RAM_MEMORY		: MEMORY	:= (
+	constant RAM_MEMORY		: MEMORY_T	:= (
 		SIZE => RAM_SIZE,
 		ADDR_BITS => RAM_ADDR_BITS,
 		MEM_START => (
@@ -144,7 +144,7 @@ package CPU_pkg is
 	constant EXT_MEM_BITS	: integer	:= 10;
 	constant EXT_MEM_SIZE	: integer 	:= 2 ** EXT_MEM_BITS;
 	constant EXT_MEM_INDEX	: integer	:= 2;
-	constant EXT_MEMORY		: MEMORY	:= (
+	constant EXT_MEMORY		: MEMORY_T	:= (
 		SIZE => EXT_MEM_SIZE,
 		ADDR_BITS => EXT_MEM_BITS,
 		MEM_START => (
@@ -157,7 +157,7 @@ package CPU_pkg is
 			)
 	);
 
-	constant MEMORY_MAP	: MEMORIES	:= (
+	constant MEMORY_MAP	: MEMORY_MAP_T	:= (
 		ROM_MEM_INDEX => ROM_MEMORY,
 		RAM_MEM_INDEX => RAM_MEMORY,
 		EXT_MEM_INDEX => EXT_MEMORY
@@ -193,7 +193,8 @@ package CPU_pkg is
 	constant PROG_START	:
 		std_logic_vector(addr_bus_width - 1 downto 0) :=
 		(
-			addr_bus_width - (PROG_COU_INC + PROG_COU_START_DISTANCE) => '0',
+			(PROG_COU_INC + PROG_COU_START_DISTANCE - 1) => '0',
+			(PROG_COU_INC - 1) downto 0 => '0',
 			others => '1'
 		)
 	;
