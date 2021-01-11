@@ -18,17 +18,6 @@ end NVIC;
 
 architecture behaviour of NVIC is
 
-    -- Enable Reset and NMI while disabling all other Interrupts by default
-    signal int_enable   : std_logic_vector(NUM_INTERRUPTS - 1 downto 0) := "11" & (NUM_INTERRUPTS - 3 downto 0 => '0');
-    -- Keep Track of all the Interrupts that were triggered
-    signal int_latches  : std_logic_vector(NUM_INTERRUPTS - 1 downto 0) := (others => '0');
-
-    type INT_PRIORITIES is array (0 to NUM_INTERRUPTS) of std_logic_vector(INT_PRIO_BITS - 1 downto 0);
-    signal int_prio     : INT_PRIORITIES := (others => (others => '1'));
-
-    type INT_ADDRESSES is array (0 to NUM_INTERRUPTS) of std_logic_vector(addr_bus_width - 1 downto 0);
-    signal int_addr     : INT_ADDRESSES := (others => (others => '0'));
-
     -- Flag Register keeping Track of which Interrupt is currently executing
     signal ACTIVE_INTERRUPT : std_logic_vector(NUM_INTERRUPTS - 1 downto 0);
 
