@@ -21,7 +21,7 @@ package CPU_pkg is
     constant REG_WIDTH		: integer   := data_bus_width;
 	constant NUM_REG		: integer	:= 2;
 	-- Tells the components which Address should be fetched/written
-	constant addr_bus_width	: integer	:= data_bus_width + WORD_ADDR_DIST;
+	constant addr_bus_width	: integer	:= 13;
 	-- Controls all the internal devices and receives external signals
 	constant ctrl_bus_width	: integer	:= 28;
 	----------------------------------------------------------------------------
@@ -63,12 +63,12 @@ package CPU_pkg is
 	constant CLOCK_CTL	:	integer := 1;
 	constant INT_REQ_B	: 	integer	:= 2;
 	----------------------------------------------------------------------------
-	constant INST_OVER	:	integer	:= 3;
-	constant PRC_INCR_B	: 	integer := 4;
-	constant PRC_IN_B	: 	integer := 5;
-	constant PRC_OUT_B	: 	integer := 6;
-	constant INST_R_IN	: 	integer	:= 7;
-	constant INST_R_OUT	: 	integer	:= 8;
+	constant INST_OVER	:	integer	:= 4;
+	constant PRC_INCR_B	: 	integer := 5;
+	constant PRC_IN_B	: 	integer := 6;
+	constant PRC_OUT_B	: 	integer := 7;
+	constant INST_R_IN	: 	integer	:= 8;
+	constant INST_R_OUT	: 	integer	:= 9;
 	constant SP_INC		: 	integer	:= 10;
 	constant SP_DEC		: 	integer	:= 11;
 	constant SP_OUT		:	integer := 12;
@@ -100,24 +100,35 @@ package CPU_pkg is
 	-- Address Distribution
 	constant NUM_MEMORY_DEVICES	: integer	:= 3;
 
+	-- Read/Write Logic
+	constant READ_BIT	: std_logic := '0';
+	constant WRITE_BIT	: std_logic := not READ_BIT;
+	constant WRITE_ENABLE	: std_logic	:= WRITE_BIT;
+
 	-- Type Declarations -------------------------------------------------------
-	type MEMORY_T is record
+	type MEMORY_T is array(0 to ROM_SIZE) of std_logic_vector(data_bus_width - 1 downto 0);
+
+	type MEMORY_SPEC_T is record
 		SIZE		: integer;
 		ADDR_BITS	: integer;
+		WRITABLE	: std_logic;
 		MEM_START	: std_logic_vector(addr_bus_width - 1 downto 0);
 		MEM_END		: std_logic_vector(addr_bus_width - 1 downto 0);
 	end record MEMORY_T;
-	type MEMORY_MAP_T is array(NUM_MEMORY_DEVICES - 1 downto 0) of MEMORY_T;
+	type MEMORY_MAP_T is array(NUM_MEMORY_DEVICES - 1 downto 0) of MEMORY_SPEC_T;
 	----------------------------------------------------------------------------
 
 	-- ROM_SIZE and RAM_SIZE will be multiplied by data_bus_width
 	constant ROM_ADDR_BITS	: integer 	:= 8;
 	constant ROM_SIZE		: integer 	:= 2 ** ROM_ADDR_BITS;
 	constant ROM_MEM_INDEX	: integer	:= 0;
-	constant ROM_MEMORY		: MEMORY_T	:= (
-		SIZE => ROM_SIZE,
-		ADDR_BITS => ROM_ADDR_BITS,
-		MEM_START => (others => '0'),
+	constant ROM_MEMORY		: MEMORY_SPEC_T	:= (
+		SIZE 		=> ROM_SIZE,
+		ADDR_BITS 	=> ROM_ADDR_BITS,
+		WRITABLE	=> '0',
+		MEM_START 	=> (
+			others => '0'
+		),
 		MEM_END	=> (
 			ROM_ADDR_BITS - 1 downto 0 => '1',
 			others => '0'
@@ -127,10 +138,11 @@ package CPU_pkg is
 	constant RAM_ADDR_BITS	: integer 	:= 8;
     constant RAM_SIZE       : integer   := 2 ** RAM_ADDR_BITS;
 	constant RAM_MEM_INDEX	: integer	:= 1;
-	constant RAM_MEMORY		: MEMORY_T	:= (
-		SIZE => RAM_SIZE,
-		ADDR_BITS => RAM_ADDR_BITS,
-		MEM_START => (
+	constant RAM_MEMORY		: MEMORY_SPEC_T	:= (
+		SIZE 		=> RAM_SIZE,
+		ADDR_BITS	=> RAM_ADDR_BITS,
+		WRITABLE	=> '1',
+		MEM_START 	=> (
 			RAM_ADDR_BITS => '1',
 			others => '0'
 		),
@@ -144,10 +156,11 @@ package CPU_pkg is
 	constant EXT_MEM_BITS	: integer	:= 10;
 	constant EXT_MEM_SIZE	: integer 	:= 2 ** EXT_MEM_BITS;
 	constant EXT_MEM_INDEX	: integer	:= 2;
-	constant EXT_MEMORY		: MEMORY_T	:= (
-		SIZE => EXT_MEM_SIZE,
-		ADDR_BITS => EXT_MEM_BITS,
-		MEM_START => (
+	constant EXT_MEMORY		: MEMORY_SPEC_T	:= (
+		SIZE 		=> EXT_MEM_SIZE,
+		ADDR_BITS 	=> EXT_MEM_BITS,
+		WRITABLE	=> '1',
+		MEM_START 	=> (
 			RAM_ADDR_BITS + 1 => '1',
 			others => '0'
 		),
@@ -187,7 +200,7 @@ package CPU_pkg is
 	-- ----------------------------------------------------------------------
 	-- Needs to be set to log2(data_bus_width)
 	constant PROG_COU_INC				: integer := WORD_ADDR_DIST;
-	constant PROG_COU_START_DISTANCE	: integer := 4;
+	constant PROG_COU_START_DISTANCE	: integer := 6;
 	-- Start Address of the Program => Start Value of Instruction Register
 	-- Program Start
 	constant PROG_START	:
@@ -198,9 +211,6 @@ package CPU_pkg is
 			others => '1'
 		)
 	;
-	-- Value of the Stack-Pointer on Reset
-	constant STACK_POINTER_START	: std_logic_vector(addr_bus_width - 1 downto 0)
-		:= (others => '0');
 	----------------------------------------------------------------------------
 
 	----------------------------------------------------------------------------
@@ -221,13 +231,13 @@ package CPU_pkg is
 	constant NOT_B_CODE		: std_logic_vector(ALU_CTRL_WIDTH - 1 downto 0)
 		:= (2 | 0 => '1',others => '0');
 	constant ADD_CODE		: std_logic_vector(ALU_CTRL_WIDTH - 1 downto 0)
-		:= (2 downto 0 => '1',others => '0');
+		:= (2 | 1 => '1',others => '0');
 	constant SUB_CODE		: std_logic_vector(ALU_CTRL_WIDTH - 1 downto 0)
-		:= (3 => '1',others => '0');
+		:= (2 downto 0 => '1',others => '0');
 	constant SHIFT_CODE		: std_logic_vector(ALU_CTRL_WIDTH - 1 downto 0)
-		:= (3 | 0 => '1',others => '0');
+		:= (3 => '1',others => '0');
 	constant PARITY_CODE	: std_logic_vector(ALU_CTRL_WIDTH - 1 downto 0)
-		:= (3 | 1 | 0 => '1',others => '0');
+		:= (3 | 0 => '1',others => '0');
 	----------------------------------------------------------------------------
 
 	----------------------------------------------------------------------------
