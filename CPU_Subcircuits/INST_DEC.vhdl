@@ -8,7 +8,7 @@ library ieee;
 
 entity INST_DEC is
     port(
-        -- This is basically a Lookup-Table so it neither needs a
+        -- This is basically a Lookup-Table so it needs neither a
         -- Reset nor a Clock
         inst        : in std_logic_vector(OPCODE_BITS - 1 downto 0);
         flags_in    : in std_logic_vector(NUM_FLAGS - 1 downto 0);
@@ -23,83 +23,104 @@ architecture behaviour of INST_DEC is
     signal ctrl_bus_intern  : std_logic_vector(ctrl_bus_width - 1 downto 0)
         := NOP_CODE;
     signal alu_ctrl_intern  : std_logic_vector(ALU_CTRL_WIDTH - 1 downto 0)
-        := NO_ALU_OPERATION(0);
+        := NO_ALU_OPERATION;
+    signal ext_bus_intern  : std_logic_vector(ext_bus_width - 1 downto 0)
+        := NO_EXT_OPERATION;
 
     begin
 
         ctrl_bus <= ctrl_bus_intern;
+        alu_ctrl <= alu_ctrl_intern;
+        -- TODO EXT-Bus im Entity Decalaration einituan
+        -- ext_bus <= ext_bus_intern;
 
-        dec : process(micro_cyc)
+        p_decoding : process(micro_cyc)
 
-            variable index  : integer    := 0;
+            variable index  : integer := 0;
 
             begin
 
-                -- Irgend
+                -- TODO Zum Multiplexer umschreiben
                 index := to_index(micro_cyc);
 
-                if (inst = NOP_INST) then
-                    -- report "NOP Instruction";
-                    ctrl_bus_intern <= NOP_CODES(index);
-                    alu_ctrl <= NO_ALU_OPERATION(index);
-                elsif (inst = MOVA_INST) then
-                    -- report "MOVA Instruction";
-                    ctrl_bus_intern <= MOVA_CODES(index);
-                    alu_ctrl <= NO_ALU_OPERATION(index);
-                elsif (inst = JEZ_INST) then
-                    -- report "JEZ Instruction";
-                    if (flags_in(ZERO_FLAG) = '1') then
-                        ctrl_bus_intern <= JEZ_CODES_S(index);
-                    else
-                        ctrl_bus_intern <= JEZ_CODES_NS(index);
+                Decoders : for i in NUM_OPCODES - 1 downto 0 loop
+
+                    if (INST_SET(i).INST_ID = inst) then
+
+                        ctrl_bus_intern <= INST_SET(i).INST_CODES(index);
+                        alu_ctrl_intern <= INST_SET(i).ALU_CODES(index);
+                        ext_bus_intern <= INST_SET(i).EXT_CODES(index);
+
                     end if;
-                    alu_ctrl <= NO_ALU_OPERATION(index);
-                elsif (inst = JCO_INST) then
-                    -- report "JCO Instruction";
-                    if (flags_in(CARRY_FLAG) = '1') then
-                        ctrl_bus_intern <= JCO_CODES_S(index);
-                    else
-                        ctrl_bus_intern <= JCO_CODES_NS(index);
-                    end if;
-                    alu_ctrl <= NO_ALU_OPERATION(index);
-                elsif (inst = JSN_INST) then
-                    -- report "JSN Instruction";
-                    if (flags_in(SIGN_FLAG) = '1') then
-                        ctrl_bus_intern <= JSN_CODES_S(index);
-                    else
-                        ctrl_bus_intern <= JSN_CODES_NS(index);
-                    end if;
-                    alu_ctrl <= NO_ALU_OPERATION(index);
-                elsif (inst = ADD_INST) then
-                    -- report "ADD Instruction";
-                    ctrl_bus_intern <= ADD_CODES(index);
-                    alu_ctrl <= ADD_ALU_CTRL(index);
-                elsif (inst = SUB_INST) then
-                    -- report "SUB Instruction";
-                    ctrl_bus_intern <= SUB_CODES(index);
-                    alu_ctrl <= SUB_ALU_CTRL(index);
-                elsif (inst = SHL_INST) then
-                    -- report "SHL Instruction";
-                    ctrl_bus_intern <= SHL_CODES(index);
-                    alu_ctrl <= SHL_ALU_CTRL(index);
-                elsif (inst = SHR_INST) then
-                    -- report "SHR Instruction";
-                    ctrl_bus_intern <= SHR_CODES(index);
-                    alu_ctrl <= SHR_ALU_CTRL(index);
-                elsif (inst = TWC_INST) then
-                    -- report "TWC Instruction";
-                    ctrl_bus_intern <= TWC_CODES(index);
-                    alu_ctrl <= TWC_ALU_CTRL(index);
-                elsif (inst = WFI_INST) then
-                    -- report "WFI Instruction";
-                    ctrl_bus_intern <= WFI_CODES(index);
-                    alu_ctrl <= NO_ALU_OPERATION(index);
-                else
-                    -- report "Not Found => NOP Instruction";
-                    -- Default to NOP if Instruction is not recognized
-                    ctrl_bus_intern <= NOP_CODES(index);
-                    alu_ctrl <= NO_ALU_OPERATION(index);
-                end if;
+
+                end loop Decoders;
+
+        end process p_decoding;
+
+end behaviour;
+
+                -- if (inst = NOP_INST) then
+                --     -- report "NOP Instruction";
+                --     ctrl_bus_intern <= NOP_CODES(index);
+                --     alu_ctrl <= NO_ALU_OPERATION(index);
+                -- elsif (inst = MOVA_INST) then
+                --     -- report "MOVA Instruction";
+                --     ctrl_bus_intern <= MOVA_CODES(index);
+                --     alu_ctrl <= NO_ALU_OPERATION(index);
+                -- elsif (inst = JEZ_INST) then
+                --     -- report "JEZ Instruction";
+                --     if (flags_in(ZERO_FLAG) = '1') then
+                --         ctrl_bus_intern <= JEZ_CODES_S(index);
+                --     else
+                --         ctrl_bus_intern <= JEZ_CODES_NS(index);
+                --     end if;
+                --     alu_ctrl <= NO_ALU_OPERATION(index);
+                -- elsif (inst = JCO_INST) then
+                --     -- report "JCO Instruction";
+                --     if (flags_in(CARRY_FLAG) = '1') then
+                --         ctrl_bus_intern <= JCO_CODES_S(index);
+                --     else
+                --         ctrl_bus_intern <= JCO_CODES_NS(index);
+                --     end if;
+                --     alu_ctrl <= NO_ALU_OPERATION(index);
+                -- elsif (inst = JSN_INST) then
+                --     -- report "JSN Instruction";
+                --     if (flags_in(SIGN_FLAG) = '1') then
+                --         ctrl_bus_intern <= JSN_CODES_S(index);
+                --     else
+                --         ctrl_bus_intern <= JSN_CODES_NS(index);
+                --     end if;
+                --     alu_ctrl <= NO_ALU_OPERATION(index);
+                -- elsif (inst = ADD_INST) then
+                --     -- report "ADD Instruction";
+                --     ctrl_bus_intern <= ADD_CODES(index);
+                --     alu_ctrl <= ADD_ALU_CTRL(index);
+                -- elsif (inst = SUB_INST) then
+                --     -- report "SUB Instruction";
+                --     ctrl_bus_intern <= SUB_CODES(index);
+                --     alu_ctrl <= SUB_ALU_CTRL(index);
+                -- elsif (inst = SHL_INST) then
+                --     -- report "SHL Instruction";
+                --     ctrl_bus_intern <= SHL_CODES(index);
+                --     alu_ctrl <= SHL_ALU_CTRL(index);
+                -- elsif (inst = SHR_INST) then
+                --     -- report "SHR Instruction";
+                --     ctrl_bus_intern <= SHR_CODES(index);
+                --     alu_ctrl <= SHR_ALU_CTRL(index);
+                -- elsif (inst = TWC_INST) then
+                --     -- report "TWC Instruction";
+                --     ctrl_bus_intern <= TWC_CODES(index);
+                --     alu_ctrl <= TWC_ALU_CTRL(index);
+                -- elsif (inst = WFI_INST) then
+                --     -- report "WFI Instruction";
+                --     ctrl_bus_intern <= WFI_CODES(index);
+                --     alu_ctrl <= NO_ALU_OPERATION(index);
+                -- else
+                --     -- report "Not Found => NOP Instruction";
+                --     -- Default to NOP if Instruction is not recognized
+                --     ctrl_bus_intern <= NOP_CODES(index);
+                --     alu_ctrl <= NO_ALU_OPERATION(index);
+                -- end if;
 
                 -- case inst is
                 --     -- TODO Irgendwie muss des lokal statisch sein
@@ -138,7 +159,3 @@ architecture behaviour of INST_DEC is
                 --     when others =>
                 --         ctrl_bus <= NOP_CODES(index);
                 -- end case;
-
-        end process dec;
-
-end behaviour;

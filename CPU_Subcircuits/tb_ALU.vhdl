@@ -9,6 +9,8 @@ end tb_ALU;
 
 architecture behaviour of tb_ALU is
 
+	constant ADVANCE : integer := 5;
+
     signal result_int   	: std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
     signal stat_out_int 	: std_logic_vector(NUM_FLAGS - 1 downto 0) := (others => '0');
 	signal ctrl_bus_intern	: std_logic_vector(ctrl_bus_width - 1 downto 0) := (others => '0');
@@ -57,10 +59,9 @@ architecture behaviour of tb_ALU is
 
 				wait for base_clock;
 
-				for sCount in 0 to ((2 ** (2 * data_bus_width)) - 1) loop
-				-- for sCount in 0 to (2 ** (2 * data_bus_width) - 1) loop
+				for sCount in 0 to (((2 ** (2 * data_bus_width)) - 1)/ADVANCE) loop
 
-					sTemp := std_logic_vector(unsigned(sTemp) + 1);
+					sTemp := std_logic_vector(unsigned(sTemp) + ADVANCE);
 
 					sOperand1 <= sTemp(data_bus_width - 1 downto 0);
 					sOperand2 <= sTemp((2 * data_bus_width) - 1 downto data_bus_width);

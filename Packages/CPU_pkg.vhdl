@@ -5,95 +5,115 @@ library     IEEE;
 
 package CPU_pkg is
 
+	function to_index(vec : std_logic_vector) return integer;
+	function calc_bits(len : integer) return integer;
+
 	-- Timing ------------------------------------------------------------------
     constant clockFrequency : integer   := 10E3;
     constant base_clock     : time      := 1.0 sec / clockFrequency;
 	constant output_delay	: time 		:= base_clock / 10;
 	----------------------------------------------------------------------------
 
-	-- Bus Sizes ---------------------------------------------------------------
-	-- Word Size in Bits
+	-- Word Size in Bits -------------------------------------------------------
 	constant WORD_SIZE		: integer	:= 8;
 	-- Word Alignment on the Address Bus = log2(WORD_SIZE)
-	constant WORD_ADDR_DIST	: integer	:= 3;
+	constant WORD_ADDR_DIST	: integer	:= calc_bits(WORD_SIZE);
+    constant REG_WIDTH		: integer   := WORD_SIZE;
+	constant NUM_REG		: integer	:= 2;
+	----------------------------------------------------------------------------
+
+	-- Bus Sizes ---------------------------------------------------------------
 	-- Transmits data from one CPU-Component to another
 	constant data_bus_width	: integer	:= WORD_SIZE;
-    constant REG_WIDTH		: integer   := data_bus_width;
-	constant NUM_REG		: integer	:= 2;
 	-- Tells the components which Address should be fetched/written
-	constant addr_bus_width	: integer	:= 13;
-	-- Controls all the internal devices and receives external signals
-	constant ctrl_bus_width	: integer	:= 28;
+	constant addr_bus_width	: integer	:= 2 * data_bus_width;
+	-- Controls all the internal devices
+	constant ctrl_bus_width	: integer	:= 25;
+	-- Controls external devices and receives external signals
+	constant ext_bus_width	: integer	:= 8;
 	----------------------------------------------------------------------------
 
 	----------------------------------------------------------------------------
 	-- CONTROL WORDS OVER THE CONTROL-BUS
 	----------------------------------------------------------------------------
 	-- External Signals --------------------
+	-- TODO De ganzen Signal muessen in da CPU jetzt mitm Externen Bus laffen
 	-- Bit 0 => Reset
 	-- Bit 1 => Clock
 	-- Bit 2 => Interrupt Request // TODO
+	-- Bit 3 => Memory Read // TODO
+	-- Bit 4 => Memory Read Finished
+	-- Bit 5 => Memory Write // TODO
+	-- Bit 6 => Wait-Bit => Stop CPU
+	-- Bit 7 => Hold for DMA
 	-- Internal Signals --------------------
-	-- Bit 3 => Instruction Over
-	-- Bit 4 => Program Counter Increment
-	-- Bit 5 => Program Counter In
-	-- Bit 6 => Program Counter Out
-	-- Bit 7 => Instruction Register In
-	-- Bit 8 => Instruction Register Out
-	-- Bit 10 => Stack Pointer Increment
-	-- Bit 11 => Stack Pointer Decrement
-	-- Bit 12 => Stack Pointer Out
-	-- Bit 13 => Memory Read // TODO
-	-- Bit 14 => Memory Write // TODO
-	-- Bit 15 => Memory Address Register In
-	-- Bit 16 => Memory Address Register Out
-	-- Bit 17 => ALU Result Out // TODO
-	-- Bit 18 => ALU Flags Out // TODO
-	-- Bit 19 => ALU Flags Clear // TODO
-	-- Bit 20 => Swap Register A and B
-	-- Bit 21 => Status Flags In
-	-- Bit 22 => Status Flags Out
-	-- Bit 23 => Status Flags Clears
-	-- Bit 24 => Register A In
-	-- Bit 25 => Register A Out
-	-- Bit 26 => Register B In
-	-- Bit 27 => Register B Out
+	-- Bit 0 => Instruction Over
+	-- Bit 1 => Program Counter Increment
+	-- Bit 2 => Program Counter In
+	-- Bit 3 => Program Counter Out
+	-- Bit 4 => Instruction Register In
+	-- Bit 5 => Instruction Register Out
+	-- Bit 6 => Stack Pointer Increment
+	-- Bit 7 => Stack Pointer Decrement
+	-- Bit 8 => Stack Pointer Initialize
+	-- Bit 9 => Stack Pointer Out
+	-- Bit 10 => Memory Address Register Low In
+	-- Bit 11 => Memory Address Register Low In
+	-- Bit 12 => Memory Address Register Out
+	-- Bit 13 => ALU Result Out // TODO
+	-- Bit 14 => ALU Flags Out // TODO
+	-- Bit 15 => ALU Flags Clear // TODO
+	-- Bit 16 => Swap Register A and B
+	-- Bit 17 => Status Flags In
+	-- Bit 18 => Status Flags Out
+	-- Bit 19 => Status Flags Clear
+	-- Bit 20 => Wait for Memory Read
+	-- Bit 21 => Register A In
+	-- Bit 22 => Register A Out
+	-- Bit 23 => Register B In
+	-- Bit 24 => Register B Out
 	----------------------------------------------------------------------------
-	constant RESET_CTL	:	integer	:= 0;
-	constant CLOCK_CTL	:	integer := 1;
-	constant INT_REQ_B	: 	integer	:= 2;
+	constant I_RESET		:	integer	:= 0;
+	constant I_CLOCK		:	integer := 1;
+	constant I_INT_REQ		: 	integer	:= 2;
+	constant I_MEM_RD		: 	integer := 3;
+	constant I_MEM_RD_READY	:	integer := 4;
+	constant I_MEM_WRI		: 	integer := 5;
+	constant I_WAIT			: 	integer := 6;
+	constant I_DMA_HOLD		:	integer := 7;
 	----------------------------------------------------------------------------
-	constant INST_OVER	:	integer	:= 4;
-	constant PRC_INCR_B	: 	integer := 5;
-	constant PRC_IN_B	: 	integer := 6;
-	constant PRC_OUT_B	: 	integer := 7;
-	constant INST_R_IN	: 	integer	:= 8;
-	constant INST_R_OUT	: 	integer	:= 9;
-	constant SP_INC		: 	integer	:= 10;
-	constant SP_DEC		: 	integer	:= 11;
-	constant SP_OUT		:	integer := 12;
-	constant MEM_RD_B	: 	integer := 13;
-	constant MEM_WRI_B	: 	integer := 14;
-	constant MEM_ARI_B	: 	integer := 15;
-	constant MEM_ARO_B	: 	integer := 16;
-	constant ALU_RSO_B	: 	integer := 17;
-	constant ALU_FLAG_B	: 	integer	:= 18;
-	constant ALU_F_CLR	: 	integer	:= 19;
-	constant SWP_REG_B	: 	integer := 20;
-	constant STF_IN_B	: 	integer := 21;
-	constant STF_OUT_B	: 	integer := 22;
-	constant CLR_STF_B	: 	integer := 23;
-	constant REG_AIN_B	: 	integer := 24;
-	constant REG_AOU_B	: 	integer := 25;
-	constant REG_BIN_B	: 	integer := 26;
-	constant REG_BOU_B	: 	integer := 27;
+	constant I_INST_OVER	:	integer	:= 0;
+	constant I_PRC_INCR		: 	integer := 1;
+	constant I_PRC_IN		: 	integer := 2;
+	constant I_PRC_OUT		: 	integer := 3;
+	constant I_INST_R_IN	: 	integer	:= 4;
+	constant I_INST_R_OUT	: 	integer	:= 5;
+	constant I_SP_INC		: 	integer	:= 6;
+	constant I_SP_DEC		: 	integer	:= 7;
+	constant I_SP_INIT		:	integer := 8;
+	constant I_SP_OUT		:	integer := 9;
+	constant I_MEM_ARI_L	: 	integer := 10;
+	constant I_MEM_ARI_H	: 	integer := 11;
+	constant I_MEM_ARO		: 	integer := 12;
+	constant I_ALU_RSO		: 	integer := 13;
+	constant I_ALU_FLAG		: 	integer	:= 14;
+	constant I_ALU_F_CLR	: 	integer	:= 15;
+	constant I_SWP_REG		: 	integer := 16;
+	constant I_STF_IN		: 	integer := 17;
+	constant I_STF_OUT		: 	integer := 18;
+	constant I_CLR_STF		: 	integer := 19;
+	constant I_WF_MEM_RD	: 	integer := 20;
+	constant I_REG_AIN		: 	integer := 21;
+	constant I_REG_AOU		: 	integer := 22;
+	constant I_REG_BIN		: 	integer := 23;
+	constant I_REG_BOU		: 	integer := 24;
 	----------------------------------------------------------------------------
 
 	----------------------------------------------------------------------------
-	constant RESET_F	: 	std_logic_vector(ctrl_bus_width - 1 downto 0)
-		:= (RESET_CTL => '1',others => 'Z');
-	constant INT_REQ	: 	std_logic_vector(ctrl_bus_width - 1 downto 0)
-		:= (INT_REQ_B => '1',others => 'Z');
+	constant RESET_F	: 	std_logic_vector(ext_bus_width - 1 downto 0)
+		:= (I_RESET => '1',others => 'Z');
+	constant INT_REQ	: 	std_logic_vector(ext_bus_width - 1 downto 0)
+		:= (I_INT_REQ => '1',others => 'Z');
 	----------------------------------------------------------------------------
 
 	----------------------------------------------------------------------------
@@ -101,20 +121,20 @@ package CPU_pkg is
 	constant NUM_MEMORY_DEVICES	: integer	:= 3;
 
 	-- Read/Write Logic
-	constant READ_BIT	: std_logic := '0';
-	constant WRITE_BIT	: std_logic := not READ_BIT;
+	constant READ_BIT		: std_logic := '0';
+	constant READ_ENABLE	: std_logic	:= READ_BIT;
+	constant WRITE_BIT		: std_logic := not READ_BIT;
 	constant WRITE_ENABLE	: std_logic	:= WRITE_BIT;
 
 	-- Type Declarations -------------------------------------------------------
-	type MEMORY_T is array(0 to ROM_SIZE) of std_logic_vector(data_bus_width - 1 downto 0);
+	-- TODO Memory sollen nit alle gleich gross sein
+	type MEMORY_T is array(0 to (2 ** addr_bus_width)) of std_logic_vector(data_bus_width - 1 downto 0);
 
 	type MEMORY_SPEC_T is record
-		SIZE		: integer;
-		ADDR_BITS	: integer;
 		WRITABLE	: std_logic;
 		MEM_START	: std_logic_vector(addr_bus_width - 1 downto 0);
 		MEM_END		: std_logic_vector(addr_bus_width - 1 downto 0);
-	end record MEMORY_T;
+	end record MEMORY_SPEC_T;
 	type MEMORY_MAP_T is array(NUM_MEMORY_DEVICES - 1 downto 0) of MEMORY_SPEC_T;
 	----------------------------------------------------------------------------
 
@@ -123,9 +143,7 @@ package CPU_pkg is
 	constant ROM_SIZE		: integer 	:= 2 ** ROM_ADDR_BITS;
 	constant ROM_MEM_INDEX	: integer	:= 0;
 	constant ROM_MEMORY		: MEMORY_SPEC_T	:= (
-		SIZE 		=> ROM_SIZE,
-		ADDR_BITS 	=> ROM_ADDR_BITS,
-		WRITABLE	=> '0',
+		WRITABLE	=> READ_ENABLE,
 		MEM_START 	=> (
 			others => '0'
 		),
@@ -139,9 +157,7 @@ package CPU_pkg is
     constant RAM_SIZE       : integer   := 2 ** RAM_ADDR_BITS;
 	constant RAM_MEM_INDEX	: integer	:= 1;
 	constant RAM_MEMORY		: MEMORY_SPEC_T	:= (
-		SIZE 		=> RAM_SIZE,
-		ADDR_BITS	=> RAM_ADDR_BITS,
-		WRITABLE	=> '1',
+		WRITABLE	=> WRITE_ENABLE,
 		MEM_START 	=> (
 			RAM_ADDR_BITS => '1',
 			others => '0'
@@ -157,9 +173,7 @@ package CPU_pkg is
 	constant EXT_MEM_SIZE	: integer 	:= 2 ** EXT_MEM_BITS;
 	constant EXT_MEM_INDEX	: integer	:= 2;
 	constant EXT_MEMORY		: MEMORY_SPEC_T	:= (
-		SIZE 		=> EXT_MEM_SIZE,
-		ADDR_BITS 	=> EXT_MEM_BITS,
-		WRITABLE	=> '1',
+		WRITABLE	=> WRITE_ENABLE,
 		MEM_START 	=> (
 			RAM_ADDR_BITS + 1 => '1',
 			others => '0'
@@ -199,23 +213,23 @@ package CPU_pkg is
 
 	-- ----------------------------------------------------------------------
 	-- Needs to be set to log2(data_bus_width)
-	constant PROG_COU_INC				: integer := WORD_ADDR_DIST;
-	constant PROG_COU_START_DISTANCE	: integer := 6;
-	-- Start Address of the Program => Start Value of Instruction Register
-	-- Program Start
-	constant PROG_START	:
-		std_logic_vector(addr_bus_width - 1 downto 0) :=
-		(
-			(PROG_COU_INC + PROG_COU_START_DISTANCE - 1) => '0',
-			(PROG_COU_INC - 1) downto 0 => '0',
-			others => '1'
-		)
-	;
+	constant PROG_COU_INC				: integer := calc_bits(data_bus_width);
+	-- constant PROG_COU_START_DISTANCE	: integer := 6;
+	-- -- Start Address of the Program => Start Value of Instruction Register
+	-- -- Program Start
+	-- constant PROG_START	:
+	-- 	std_logic_vector(addr_bus_width - 1 downto 0) :=
+	-- 	(
+	-- 		(PROG_COU_INC + PROG_COU_START_DISTANCE - 1) => '0',
+	-- 		(PROG_COU_INC - 1) downto 0 => '0',
+	-- 		others => '1'
+	-- 	)
+	-- ;
 	----------------------------------------------------------------------------
 
 	----------------------------------------------------------------------------
 	constant NUM_ALU_OPER	: integer	:= 9;
-	constant ALU_CTRL_WIDTH	: integer	:= 4; -- log2(NUM_ALU_OPER)
+	constant ALU_CTRL_WIDTH	: integer	:= calc_bits(NUM_ALU_OPER); -- log2(NUM_ALU_OPER)
 	----------------------------------------------------------------------------
 	-- There is no "(others => '0')"-Code
 	-- (others => '0') as ALU_CTRL => (others => '0') as ALU_RESULT
@@ -268,8 +282,6 @@ package CPU_pkg is
 	constant SIGN_FLAG		: integer	:= 5;
 	----------------------------------------------------------------------------
 
-	function to_index(vec : std_logic_vector) return integer;
-
 end package CPU_pkg;
 
 package body CPU_pkg is
@@ -281,5 +293,46 @@ package body CPU_pkg is
 			return to_integer(unsigned(vec));
 
 	end function to_index;
+
+	function calc_bits(len : integer) return integer is
+
+		begin
+
+			case len is
+				when 1 | 2 							=> return 1;
+				when 4 | 3 							=> return 2;
+				when 8 downto 5 					=> return 3;
+				when 16 downto 9 					=> return 4;
+				when 32 downto 17 					=> return 5;
+				when 64 downto 33 					=> return 6;
+				when 128 downto 65 					=> return 7;
+				when 256 downto 129 				=> return 8;
+				when 512 downto 257 				=> return 9;
+				when 1024 downto 513 				=> return 10;
+				when 2048 downto 1025 				=> return 11;
+				when 4096 downto 2049 				=> return 12;
+				when 8192 downto 4097 				=> return 13;
+				when 16384 downto 8193 				=> return 14;
+				when 32768 downto 16385 			=> return 15;
+				when 65536 downto 32769 			=> return 16;
+				when 131072 downto 65537 			=> return 17;
+				when 262144 downto 131073 			=> return 18;
+				when 524288 downto 262145 			=> return 19;
+				when 1048576 downto 524289 			=> return 20;
+				when 2097152 downto 1048577 		=> return 21;
+				when 4194304 downto 2097153 		=> return 22;
+				when 8388608 downto 4194305 		=> return 23;
+				when 16777216 downto 8388609 		=> return 24;
+				when 33554432 downto 16777217 		=> return 25;
+				when 67108864 downto 33554433 		=> return 26;
+				when 134217728 downto 67108865 		=> return 27;
+				when 268435456 downto 134217729 	=> return 28;
+				when 536870912 downto 268435457 	=> return 29;
+				when 1073741824 downto 536870913 	=> return 30;
+				when 2147483647 downto 1073741825 	=> return 31;
+				when others		=> report "Invalid Len";
+			end case;
+
+	end function calc_bits;
 
 end package body CPU_pkg;

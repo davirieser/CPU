@@ -166,7 +166,7 @@ architecture behaviour of ALU is
 
             begin
 
-                if (ctrl_bus(ALU_RSO_B) = '1') then
+                if (ctrl_bus(I_ALU_RSO) = '1') then
 
                     if (ctrl = AND_CODE) then
                         int_result <= RES_AND;
@@ -210,9 +210,9 @@ architecture behaviour of ALU is
 
                 end if;
 
-                if (ctrl_bus(ALU_FLAG_B) = '1') then
+                if (ctrl_bus(I_ALU_FLAG) = '1') then
                     status_out <= status_out_int;
-                elsif (ctrl_bus(CLR_STF_B) = '1') then
+                elsif (ctrl_bus(I_ALU_F_CLR) = '1') then
                     status_out <= (others => '0');
                 end if;
 

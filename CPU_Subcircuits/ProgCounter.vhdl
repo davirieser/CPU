@@ -17,7 +17,7 @@ end ProgCounter;
 
 architecture structure of ProgCounter is
 
-    signal prog_count_s     : std_logic_vector(addr_bus_width - 1 downto 0) := PROG_START;
+    signal prog_count_s     : std_logic_vector(addr_bus_width - 1 downto 0) := (others => '0');
     signal carries          : std_logic_vector(addr_bus_width - 1 downto 0) := (others => '0');
     signal aOutput          : std_logic_vector(addr_bus_width - 1 downto 0) := (others => '0');
 
@@ -44,7 +44,7 @@ architecture structure of ProgCounter is
 
         Counter : process(ctrl_bus)
 
-            variable prog_count_v   : std_logic_vector(addr_bus_width - 1 downto 0) := PROG_START;
+            variable prog_count_v   : std_logic_vector(addr_bus_width - 1 downto 0) := (others => '0');
 
             begin
 
@@ -53,16 +53,16 @@ architecture structure of ProgCounter is
                 cnt_overf <= '0';
                 -- prog_count_v := std_logic_vector(unsigned(prog_count_s) + 1);
 
-                if (ctrl_bus(RESET_CTL) = '1') then
+                if (ctrl_bus(I_RESET) = '1') then
                     -- report "Program Counter Reset";
-                    prog_count_v := PROG_START;
+                    prog_count_v := (others => '0');
                 else
-                    if (ctrl_bus(PRC_IN_B) = '1') then
+                    if (ctrl_bus(I_PRC_IN) = '1') then
                         -- report "Program Counter Override";
                         -- TODO Andersch machen => Addressen werden nit gscheid auf
                         -- en Daten-Bus gschrieben => Stack Pointer geht nit
                         prog_count_v := OVR_FILLER & data_bus;
-                    elsif (ctrl_bus(PRC_INCR_B) = '1') then
+                    elsif (ctrl_bus(I_PRC_INCR) = '1') then
                         -- report "Program Counter Increment";
                         prog_count_v := aOutput;
                         cnt_overf <= carries(addr_bus_width - 1);
@@ -70,7 +70,7 @@ architecture structure of ProgCounter is
                 end if;
 
                 -- Output Program Counter
-                if ctrl_bus(PRC_OUT_B) = '1' then
+                if ctrl_bus(I_PRC_OUT) = '1' then
                     -- report "Program Counter Out";
                     -- TODO Andersch machen => Addressen werden nit gscheid auf
                     -- en Daten-Bus gschrieben => Stack Pointer geht nit

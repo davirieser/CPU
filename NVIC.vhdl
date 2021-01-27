@@ -18,6 +18,8 @@ end NVIC;
 
 architecture behaviour of NVIC is
 
+    -- TODO Priority Encoder sollten des einfacher machen : https://en.wikipedia.org/wiki/Priority_encoder
+
     -- Flag Register keeping Track of which Interrupt is currently executing
     signal ACTIVE_INTERRUPT : std_logic_vector(NUM_INTERRUPTS - 1 downto 0);
 

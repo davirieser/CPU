@@ -23,8 +23,9 @@ package INST_DEC_pkg is
 	-- IRET - Interrupt Return
 	--          => Program Counter = POP and clear INT-Flag
 	-- JMP - Unconditional Jump
-	-- LD - Load Memory Address into Register
-	-- MOV - Move Value from Memory to Register
+	-- LDA - Load Memory Address into Register A
+	-- LDB - Load Memory Address into Register B
+	-- MOV - Move Values in Memory
 	-- NEG - Negate Register A (Two's Complement)
 	-- NOP - No Operation
 	-- OR - Logical OR of Registers A and B
@@ -44,147 +45,210 @@ package INST_DEC_pkg is
 	-- XOR - Logical XOR of Registers A and B
 	-- --------------------------------------------------------------------
 
-	type CODE_T is array(NUM_MICRO_CMD - 1 downto 0) of std_logic_vector(ctrl_bus_width - 1 downto 0);
-
-	type ALU_CTRL_T is array(NUM_MICRO_CMD - 1 downto 0) of std_logic_vector(ALU_CTRL_WIDTH - 1 downto 0);
-
+	----------------------------------------------------------------------------
+	type CTRL_CODE_T 	is array(NUM_MICRO_CMD - 1 downto 0) of
+		std_logic_vector(ctrl_bus_width - 1 downto 0);
+	type EXT_CODE_T 	is array(NUM_MICRO_CMD - 1 downto 0) of
+		std_logic_vector(ext_bus_width - 1 downto 0);
+	type ALU_CTRL_T is array(NUM_MICRO_CMD - 1 downto 0) of
+		std_logic_vector(ALU_CTRL_WIDTH - 1 downto 0);
+	----------------------------------------------------------------------------
 	type INSTRUCTION_T is record
 		INST_ID		: std_logic_vector(OPCODE_BITS - 1 downto 0);
-		INST_CODES	: CODE_T;
+		INST_CODES	: CTRL_CODE_T;
+		EXT_CODES	: EXT_CODE_T;
 		ALU_CODES	: ALU_CTRL_T;
 	end record INSTRUCTION_T;
 
-	type INST_VECTOR_T is array(NUM_OPCODES - 1 downto 0) of INSTRUCTION_T;
+	type INSTRUCTION_SET_T is array(NUM_OPCODES - 1 downto 0) of INSTRUCTION_T;
+	----------------------------------------------------------------------------
 
-	-- TODO
-	-- constant INSTRUCTIONS_LUT	: INST_VECTOR_T;
-
-	constant NOP_CODE			: std_logic_vector(ctrl_bus_width - 1 downto 0)
+	----------------------------------------------------------------------------
+	-- No Operation Vectors
+	constant NOP_CTRL_CODE	: std_logic_vector(ctrl_bus_width - 1 downto 0)
 		:= (others => 'Z');
-	constant NO_ALU_OPERATION	: ALU_CTRL_T	:= (others => (others => '0'));
+	constant NOP_ALU_CODE	: std_logic_vector(ALU_CTRL_WIDTH - 1 downto 0)
+		:= (others => '0');
+	constant NOP_EXT_CODE	: std_logic_vector(ext_bus_width - 1 downto 0)
+		:= (others => 'Z');
+	----------------------------------------------------------------------------
 
-	-- NO Operation => Advances Program Counter and waits for the Rest of the Command Cycle
-	-- Takes two (Master-)Clk Cycles and doesn't modify any Registers
-	constant NOP_INST   : std_logic_vector(OPCODE_BITS - 1 downto 0) := (others => '0');
-	constant NOP_CODES	: CODE_T := (
+	----------------------------------------------------------------------------
+	-- NO Operation => Advances Program Counter and fetches next Instruction
+	-- Takes two (Master-) Clk Cycles and doesn't modify any Registers
+	constant NOP_ID		: std_logic_vector(OPCODE_BITS - 1 downto 0)
+		:= (others => '0');
+	constant NOP_CTRL_C	: CTRL_CODE_T := (
 		-- Increment Program Counter and fetch next instruction
-		0 => (PRC_INCR_B | PRC_OUT_B | MEM_ARI_B => '1',others => 'Z'),
+		0 => (I_PRC_INCR | I_PRC_OUT | I_WF_MEM_RD => '1',others => 'Z'),
 		-- Store next Instruction in Instruction Register + Instruction Over
-		1 => (MEM_RD_B | INST_OVER | INST_R_IN => '1',others => 'Z'),
+		1 => (I_INST_R_IN | I_INST_OVER => '1',others => 'Z'),
 		-- This should theoretically never run but is defined for Safety
-		others => NOP_CODE
+		others => NOP_CTRL_CODE
 	);
+	constant NOP_EXT_C	: EXT_CODE_T := (
+		0 => (I_MEM_RD => '1', others => 'Z'),
+		others => NOP_EXT_CODE
+	);
+	constant NOP_ALU_C	: ALU_CTRL_T := (
+		others => NOP_ALU_CODE
+	);
+	----------------------------------------------------------------------------
+	constant NOP_INSTRUCTION	: INSTRUCTION_T := (
+		INST_ID => NOP_ID,
+		INST_CODES => NOP_CTRL_C,
+		EXT_CODES => NOP_EXT_C,
+		ALU_CODES => NOP_ALU_C
+	);
+	----------------------------------------------------------------------------
 
+	----------------------------------------------------------------------------
 	-- Move from Memory to Register A
 	-- Takes four (Master-)Clk Cycles and modifies Register A
-	constant MOVA_INST	: std_logic_vector(OPCODE_BITS - 1 downto 0)
+	constant MOVA_ID	: std_logic_vector(OPCODE_BITS - 1 downto 0)
 		:= (0 => '1',others => '0');
-	constant MOVA_CODES	: CODE_T := (
+	constant MOVA_CTRL_C	: CTRL_CODE_T := (
 		-- TODO Fetch Operand von Memory
 		-- Increment Program Counter and fetch Operand
-		0 => (PRC_INCR_B | MEM_ARI_B => '1',others => 'Z'),
+		0 => (I_PRC_INCR | I_MEM_ARI_L => '1',others => 'Z'),
 		-- Store Operand Value in Register A
-		1 => (MEM_RD_B | REG_AIN_B => '1',others => 'Z'),
+		1 => (I_MEM_RD | I_REG_AIN => '1',others => 'Z'),
 		-- Fetch next Instruction
-		2 => (PRC_OUT_B | MEM_ARI_B => '1',others => 'Z'),
+		2 => (I_PRC_OUT | I_MEM_ARI_L => '1',others => 'Z'),
 		-- Store next Instruction in Instruction Register + Instruction Over
-		3 => (MEM_RD_B | INST_R_IN | INST_OVER => '1',others => 'Z'),
+		3 => (I_MEM_RD | I_INST_R_IN | I_INST_OVER => '1',others => 'Z'),
 		-- This should theoretically never run but is defined for Safety
-		others => NOP_CODE
+		others => NOP_CTRL_CODE
 	);
+	constant NOP_EXT_C	: EXT_CODE_T := (
+		0 => (I_MEM_RD => '1', others => 'Z'),
+		others => NOP_EXT_CODE
+	);
+	constant NOP_ALU_C	: ALU_CTRL_T := (
+		others => NOP_ALU_CODE
+	);
+	----------------------------------------------------------------------------
 
+	----------------------------------------------------------------------------
 	-- Move from Memory to Register B
 	-- Takes four (Master-)Clk Cycles and modifies Register B
-	constant MOVB_INST	: std_logic_vector(OPCODE_BITS - 1 downto 0)
+	constant MOVB_ID	: std_logic_vector(OPCODE_BITS - 1 downto 0)
 		:= (1 => '1',others => '0');
-	constant MOVB_CODES	: CODE_T := (
+	constant MOVB_CODES	: CTRL_CODE_T := (
 		-- TODO Fetch Operand von Memory
 		-- Increment Program Counter and fetch Operand
-		0 => (PRC_INCR_B | MEM_ARI_B => '1',others => 'Z'),
+		0 => (I_PRC_INCR | I_MEM_ARI_L => '1',others => 'Z'),
 		-- Store Operand Value in Register A
-		1 => (MEM_RD_B | REG_BIN_B => '1',others => 'Z'),
+		1 => (I_MEM_RD | I_REG_BIN => '1',others => 'Z'),
 		-- Fetch next Instruction
-		2 => (PRC_OUT_B | MEM_ARI_B => '1',others => 'Z'),
+		2 => (I_PRC_OUT | I_MEM_ARI_L => '1',others => 'Z'),
 		-- Store next Instruction in Instruction Register + Instruction Over
-		3 => (MEM_RD_B | INST_R_IN | INST_OVER => '1',others => 'Z'),
+		3 => (I_MEM_RD | I_INST_R_IN | I_INST_OVER => '1',others => 'Z'),
 		-- This should theoretically never run but is defined for Safety
-		others => NOP_CODE
+		others => NOP_CTRL_CODE
 	);
+	----------------------------------------------------------------------------
 
+	----------------------------------------------------------------------------
 	-- Store Value from Register A in Memory
-	constant STOA_INST	: std_logic_vector(OPCODE_BITS - 1 downto 0)
+	constant STOA_ID	: std_logic_vector(OPCODE_BITS - 1 downto 0)
 		:= (0 | 1 => '1',others => '0');
-	constant STOA_CODES	: CODE_T := (
-		0 => (PRC_INCR_B => '1',others => 'Z'),
-		1 => (MEM_WRI_B => '1',REG_AOU_B => '1',others => 'Z'),
-		others => NOP_CODE
+	constant STOA_CODES	: CTRL_CODE_T := (
+		0 => (I_PRC_INCR => '1',others => 'Z'),
+		1 => (I_MEM_WRI => '1',I_REG_AOU => '1',others => 'Z'),
+		others => NOP_CTRL_CODE
 	);
+	----------------------------------------------------------------------------
 
+	----------------------------------------------------------------------------
 	-- Store Value from Register B in Memory
-	constant STOB_INST	: std_logic_vector(OPCODE_BITS - 1 downto 0)
+	constant STOB_ID	: std_logic_vector(OPCODE_BITS - 1 downto 0)
 		:= (2 => '1',others => '0');
-	constant STOB_CODES	: CODE_T := (
-		0 => (PRC_INCR_B => '1',others => 'Z'),
-		1 => (MEM_WRI_B => '1',REG_BOU_B => '1',others => 'Z'),
-		others => NOP_CODE
+	constant STOB_CODES	: CTRL_CODE_T := (
+		0 => (I_PRC_INCR => '1',others => 'Z'),
+		1 => (I_REG_BOU => '1',others => 'Z'),
+		others => NOP_CTRL_CODE
 	);
+	----------------------------------------------------------------------------
 
+	----------------------------------------------------------------------------
 	-- Jump Equals Zero => Check if Zero Flag is set and jump to Address
-	constant JEZ_INST	: std_logic_vector(OPCODE_BITS - 1 downto 0)
+	constant JEZ_ID	: std_logic_vector(OPCODE_BITS - 1 downto 0)
 		:= (2 | 0 => '1',others => '0');
-	constant JEZ_CODES_S	: CODE_T := (0 => (PRC_INCR_B => '1',others => 'Z'),others => NOP_CODE);
-	constant JEZ_CODES_NS	: CODE_T := (0 => (PRC_INCR_B => '1',others => 'Z'),others => NOP_CODE);
+	constant JEZ_CODES_S	: CTRL_CODE_T := (0 => (I_PRC_INCR => '1',others => 'Z'),others => NOP_CTRL_CODE);
+	constant JEZ_CODES_NS	: CTRL_CODE_T := (0 => (I_PRC_INCR => '1',others => 'Z'),others => NOP_CTRL_CODE);
+	----------------------------------------------------------------------------
 
+	----------------------------------------------------------------------------
 	-- Jump Carry Overflow=> Check if Carry Flag is set and jump to Address
-	constant JCO_INST	: std_logic_vector(OPCODE_BITS - 1 downto 0)
+	constant JCO_ID	: std_logic_vector(OPCODE_BITS - 1 downto 0)
 		:= (2 | 1 downto 0 => '1',others => '0');
-	constant JCO_CODES_S	: CODE_T := (0 => (PRC_INCR_B => '1',others => 'Z'),others => NOP_CODE);
-	constant JCO_CODES_NS	: CODE_T := (0 => (PRC_INCR_B => '1',others => 'Z'),others => NOP_CODE);
+	constant JCO_CODES_S	: CTRL_CODE_T := (0 => (I_PRC_INCR => '1',others => 'Z'),others => NOP_CTRL_CODE);
+	constant JCO_CODES_NS	: CTRL_CODE_T := (0 => (I_PRC_INCR => '1',others => 'Z'),others => NOP_CTRL_CODE);
+	----------------------------------------------------------------------------
 
-
+	----------------------------------------------------------------------------
 	-- Jump Sign Negative=> Check if Negative Flag is set and jump to Address
-	constant JSN_INST	: std_logic_vector(OPCODE_BITS - 1 downto 0)
+	constant JSN_ID	: std_logic_vector(OPCODE_BITS - 1 downto 0)
 		:= (2 downto 0 => '1',others => '0');
-	constant JSN_CODES_S	: CODE_T := (0 => (PRC_INCR_B => '1',others => 'Z'),others => NOP_CODE);
-	constant JSN_CODES_NS	: CODE_T := (0 => (PRC_INCR_B => '1',others => 'Z'),others => NOP_CODE);
+	constant JSN_CODES_S	: CTRL_CODE_T := (0 => (I_PRC_INCR => '1',others => 'Z'),others => NOP_CTRL_CODE);
+	constant JSN_CODES_NS	: CTRL_CODE_T := (0 => (I_PRC_INCR => '1',others => 'Z'),others => NOP_CTRL_CODE);
+	----------------------------------------------------------------------------
 
 	-- Add
-	constant ADD_INST	: std_logic_vector(OPCODE_BITS - 1 downto 0)
+	----------------------------------------------------------------------------
+	constant ADD_ID	: std_logic_vector(OPCODE_BITS - 1 downto 0)
 		:= (3 => '1',others => '0');
-	constant ADD_CODES	: CODE_T := (0 => (PRC_INCR_B => '1',others => 'Z'),others => NOP_CODE);
+	constant ADD_CODES	: CTRL_CODE_T := (0 => (I_PRC_INCR => '1',others => 'Z'),others => NOP_CTRL_CODE);
 	constant ADD_ALU_CTRL	: ALU_CTRL_T	:= (others => (others => '0'));
+	----------------------------------------------------------------------------
 
+	----------------------------------------------------------------------------
 	-- Subtract
-	constant SUB_INST	: std_logic_vector(OPCODE_BITS - 1 downto 0)
+	constant SUB_ID	: std_logic_vector(OPCODE_BITS - 1 downto 0)
 		:= (3 | 1 => '1',others => '0');
-	constant SUB_CODES	: CODE_T := (others => NOP_CODE);
+	constant SUB_CODES	: CTRL_CODE_T := (others => NOP_CTRL_CODE);
 	constant SUB_ALU_CTRL	: ALU_CTRL_T	:= (others => (others => '0'));
+	----------------------------------------------------------------------------
 
+	----------------------------------------------------------------------------
 	-- Shift Left
-	constant SHL_INST	: std_logic_vector(OPCODE_BITS - 1 downto 0)
+	constant SHL_ID	: std_logic_vector(OPCODE_BITS - 1 downto 0)
 		:= (3 | 1 | 0 => '1',others => '0');
-	constant SHL_CODES	: CODE_T := (0 => (PRC_INCR_B => '1',others => 'Z'),others => NOP_CODE);
+	constant SHL_CODES	: CTRL_CODE_T := (0 => (I_PRC_INCR => '1',others => 'Z'),others => NOP_CTRL_CODE);
 	constant SHL_ALU_CTRL	: ALU_CTRL_T	:= (others => (others => '0'));
+	----------------------------------------------------------------------------
 
+	----------------------------------------------------------------------------
 	-- Shift Right
-	constant SHR_INST	: std_logic_vector(OPCODE_BITS - 1 downto 0)
+	constant SHR_ID	: std_logic_vector(OPCODE_BITS - 1 downto 0)
 		:= (3 | 2 => '1',others => '0');
-	constant SHR_CODES	: CODE_T := (0 => (PRC_INCR_B => '1',others => 'Z'),others => NOP_CODE);
+	constant SHR_CODES	: CTRL_CODE_T := (0 => (I_PRC_INCR => '1',others => 'Z'),others => NOP_CTRL_CODE);
 	constant SHR_ALU_CTRL	: ALU_CTRL_T	:= (others => (others => '0'));
+	----------------------------------------------------------------------------
 
+	----------------------------------------------------------------------------
 	-- Two's Complement
-	constant TWC_INST	: std_logic_vector(OPCODE_BITS - 1 downto 0)
+	constant TWC_ID	: std_logic_vector(OPCODE_BITS - 1 downto 0)
 		:= (3 | 2 | 0 => '1',others => '0');
-	constant TWC_CODES	: CODE_T := (0 => (PRC_INCR_B => '1',others => 'Z'),others => NOP_CODE);
+	constant TWC_CODES	: CTRL_CODE_T := (0 => (I_PRC_INCR => '1',others => 'Z'),others => NOP_CTRL_CODE);
 	constant TWC_ALU_CTRL	: ALU_CTRL_T	:= (others => (others => '0'));
+	----------------------------------------------------------------------------
 
+	----------------------------------------------------------------------------
 	-- Wait For Interrupt => Do Nothing
 	-- 		(not even advance Program Counter / fetch Instruction)
-	constant WFI_INST	: std_logic_vector(OPCODE_BITS - 1 downto 0)
+	constant WFI_ID	: std_logic_vector(OPCODE_BITS - 1 downto 0)
 		:= (3 | 2 | 1 => '1',others => '0');
-	constant WFI_CODES	: CODE_T := (
+	constant WFI_CODES	: CTRL_CODE_T := (
 		-- No Action in any Micro Cycle
-		others => NOP_CODE
+		others => NOP_CTRL_CODE
+	);
+	----------------------------------------------------------------------------
+
+	constant INST_SET : INSTRUCTION_SET_T := (
+		0 => NOP_INSTRUCTION,
+		others => NOP_INSTRUCTION
 	);
 
 end package INST_DEC_pkg;

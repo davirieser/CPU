@@ -7,8 +7,8 @@ library ieee;
 
 entity MEMORY is
     generic(
-        WRITABLE : std_logic := WRITE_ENABLE,
-        MEM_START   : std_logic_vector(addr_bus_width - 1 downto 0) := (others => '1'),
+        WRITABLE : std_logic := WRITE_ENABLE;
+        MEM_START   : std_logic_vector(addr_bus_width - 1 downto 0) := (others => '1');
         MEM_END : std_logic_vector(addr_bus_width - 1 downto 0) := (others => '1')
     );
     port(
@@ -19,15 +19,17 @@ entity MEMORY is
         -- Read/Write Input : Only for Writable Memories
         rd_wr       : in std_logic;
         -- Address Input -> The Address which is to be read
-        addr        : in std_logic_vector(addr_bus_width - 1 downto 0);
+        addr_bus    : inout std_logic_vector(addr_bus_width - 1 downto 0);
         -- Data In/Output -> Connected to Data-Bus
-        data        : inout std_logic_vector(data_bus_width - 1 downto 0)
+        data_bus    : inout std_logic_vector(data_bus_width - 1 downto 0);
+        -- Data ready
+        data_ready  : out std_logic
     );
 end MEMORY;
 
 architecture behaviour of MEMORY is
 
-    signal memory : MEMORY_T := (others => (
+    signal internal_memory : MEMORY_T := (others => (
         data_bus_width - 1 downto data_bus_width - 3 => '1',
         others => '0')
     );
@@ -54,58 +56,62 @@ architecture behaviour of MEMORY is
 
     begin
 
-        MEMORY : process(clk,mem_addressed)
+        -- TODO Sollt checken ob da Bus High Impedance is
+        --      damit die Subtrahierer nit an Scheiss zam rechnen
+
+        p_RD_WR_CTRL : process(clk)
 
             begin
+
+                data_ready <= 'Z';
 
                 if ((ena = '1') and (mem_active = '1')) then
                     if (rd_wr = READ_BIT) then
                         -- report "Memory Out";
-                        data <= memory(to_index(addr_corr));
+                        data_bus <= internal_memory(to_index(addr_corr));
+                        data_ready <= '1';
                     elsif ((rd_wr = WRITE_BIT) and (WRITABLE = WRITE_ENABLE)) then
                         -- report "Memory Write";
-                        memory(to_index(addr_corr)) <= data;
+                        internal_memory(to_index(addr_corr)) <= data_bus;
                     end if;
                 else
-                    data <= (others => 'Z');
+                    data_bus <= (others => 'Z');
                 end if;
 
-        end process MEMORY;
+        end process p_RD_WR_CTRL;
 
         UNDER_CHECKER : entity work.Subtractor
-            generic map(
-                regWidth    => addr_bus_width
-            )
-            port map(
-                carryIn     => '0',
-                inputA      => addr,
-                inputB      => MEM_START,
-                aOutput     => addr_corr,
-                aCarry      => under_addr
-            )
-        ;
+        generic map(
+            regWidth    => addr_bus_width
+        )
+        port map(
+            carryIn     => '0',
+            inputA      => addr_bus,
+            inputB      => MEM_START,
+            aOutput     => addr_corr,
+            aCarry      => under_addr
+        );
 
         OVER_CHECKER : entity work.Subtractor
-            generic map(
-                regWidth    => addr_bus_width
-            )
-            port map(
-                -- TODO I glab des sollt auf 1 gsetzt sein
-                --      Damit die letzte Addresse nit miteini geht
-                carryIn     => '0',
-                inputA      => MEM_END,
-                inputB      => addr,
-                aOutput     => sub2_out,
-                aCarry      => over_addr
-            )
-        ;
+        generic map(
+            regWidth    => addr_bus_width
+        )
+        port map(
+            -- TODO I glab des sollt auf 1 gsetzt sein
+            --      Damit die letzte Addresse nit miteini geht
+            carryIn     => '0',
+            inputA      => MEM_END,
+            inputB      => addr_bus,
+            aOutput     => sub2_out,
+            aCarry      => over_addr
+        );
 
-        ENA_GENERATION : process(addr)
+        ACTIVE_GENERATION : process(addr_bus)
 
             begin
 
                 mem_active <= (over_addr and under_addr);
 
-        end process ENA_GENERATION;
+        end process ACTIVE_GENERATION;
 
 end behaviour;
