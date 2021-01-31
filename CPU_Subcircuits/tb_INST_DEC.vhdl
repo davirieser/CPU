@@ -15,14 +15,14 @@ architecture behaviour of tb_INST_DEC is
         port(
             -- This is basically a Lookup-Table so it neither needs a
             -- Reset nor a Clock
-            inst        : in std_logic_vector(OPCODE_BITS - 1 downto 0);
+            inst        : in std_logic_vector(OPCODE_BITS + NUM_FLAGS - 1 downto 0);
             flags_in    : in std_logic_vector(NUM_FLAGS - 1 downto 0);
             micro_cyc   : in std_logic_vector(NUM_MICRO_CYC - 1 downto 0);
             ctrl_bus    : inout std_logic_vector(ctrl_bus_width - 1 downto 0)
         );
     end component INST_DEC;
 
-    constant size       : integer := OPCODE_BITS + NUM_MICRO_CYC;
+    constant size       : integer := OPCODE_BITS + NUM_MICRO_CYC + NUM_FLAGS;
 
     signal sTemp 		: std_logic_vector(size - 1 downto 0) := (others => '0');
     signal sCtrl        : std_logic_vector(ctrl_bus_width - 1 downto 0) := (others => 'Z');

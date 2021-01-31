@@ -10,29 +10,29 @@ entity INST_DEC is
     port(
         -- This is basically a Lookup-Table so it needs neither a
         -- Reset nor a Clock
-        inst        : in std_logic_vector(OPCODE_BITS - 1 downto 0);
+        inst        : in std_logic_vector(OPCODE_BITS + NUM_FLAGS - 1 downto 0);
         flags_in    : in std_logic_vector(NUM_FLAGS - 1 downto 0);
         micro_cyc   : in std_logic_vector(NUM_MICRO_CYC - 1 downto 0);
         alu_ctrl    : out std_logic_vector(ALU_CTRL_WIDTH - 1 downto 0);
-        ctrl_bus    : inout std_logic_vector(ctrl_bus_width - 1 downto 0)
+        ctrl_bus    : inout std_logic_vector(ctrl_bus_width - 1 downto 0);
+        ext_bus     : inout std_logic_vector(ext_bus_width - 1 downto 0)
     );
 end INST_DEC;
 
 architecture behaviour of INST_DEC is
 
     signal ctrl_bus_intern  : std_logic_vector(ctrl_bus_width - 1 downto 0)
-        := NOP_CODE;
+        := NOP_CTRL_CODE;
     signal alu_ctrl_intern  : std_logic_vector(ALU_CTRL_WIDTH - 1 downto 0)
-        := NO_ALU_OPERATION;
+        := NOP_ALU_CODE;
     signal ext_bus_intern  : std_logic_vector(ext_bus_width - 1 downto 0)
-        := NO_EXT_OPERATION;
+        := NOP_EXT_CODE;
 
     begin
 
         ctrl_bus <= ctrl_bus_intern;
         alu_ctrl <= alu_ctrl_intern;
-        -- TODO EXT-Bus im Entity Decalaration einituan
-        -- ext_bus <= ext_bus_intern;
+        ext_bus <= ext_bus_intern;
 
         p_decoding : process(micro_cyc)
 
@@ -45,7 +45,7 @@ architecture behaviour of INST_DEC is
 
                 Decoders : for i in NUM_OPCODES - 1 downto 0 loop
 
-                    if (INST_SET(i).INST_ID = inst) then
+                    if (compare_dont_care(INST_SET(i).INST_ID,inst)) then
 
                         ctrl_bus_intern <= INST_SET(i).INST_CODES(index);
                         alu_ctrl_intern <= INST_SET(i).ALU_CODES(index);

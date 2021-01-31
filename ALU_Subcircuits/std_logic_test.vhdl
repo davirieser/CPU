@@ -29,7 +29,9 @@ architecture behaviour of std_logic_test is
 
     begin
 
-        a : process
+        -- Test Operators ------------------------------------------------------
+
+        test_operators : process
 
             begin
 
@@ -44,7 +46,7 @@ architecture behaviour of std_logic_test is
 
                 wait;
 
-        end process a;
+        end process test_operators;
 
         and_result  <= operand1 and operand2;
         or_result   <= operand1 or operand2;
@@ -58,5 +60,29 @@ architecture behaviour of std_logic_test is
                     xnor_result & not_result;
 
         outp <= int_outp;
+
+        -- Test If with Don't Care ---------------------------------------------
+
+        test_dont_care : process (operand1)
+
+            variable x1 : std_logic_vector(3 downto 0) := "10Z1";
+            variable x2 : std_logic_vector(3 downto 0) := "---1";
+
+            variable flag : boolean := true;
+
+            begin
+
+                for i in x1'range loop
+                    flag := flag and
+                            ((x1(i)='-') or
+                            (x2(i)='-') or
+                            (x1(i) = x2(i)));
+                end loop;
+
+                if (flag) then
+                    report "Test worked";
+                end if;
+
+        end process test_dont_care;
 
 end behaviour;

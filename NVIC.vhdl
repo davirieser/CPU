@@ -23,6 +23,8 @@ architecture behaviour of NVIC is
     -- Flag Register keeping Track of which Interrupt is currently executing
     signal ACTIVE_INTERRUPT : std_logic_vector(NUM_INTERRUPTS - 1 downto 0);
 
+    signal int_flipflops    : std_logic_vector(NUM_INTERRUPTS - 1 downto 0);
+
     begin
 
         -- Process to set Interupt-Flags
@@ -36,7 +38,7 @@ architecture behaviour of NVIC is
                 if ((int_clear and int_in) = (NUM_INTERRUPTS => '0')) then
 
                     -- Or the Latched Interrupts and the incoming Interrupts
-                    int_latches <= int_latches or int_in;
+                    int_flipflops <= int_flipflops or int_in;
 
                 end if;
 
@@ -48,7 +50,7 @@ architecture behaviour of NVIC is
 
             begin
 
-                int_latches <= int_latches and not int_clear;
+                int_flipflops <= int_flipflops and not int_clear;
 
         end process INTERRUPT_CLR;
 
@@ -69,13 +71,15 @@ architecture behaviour of NVIC is
                     --     ACTIVE_INTERRUPT <= NEW_INTERRUPT
                     -- end if;
 
+                    -- TODO Then load Address of ISR into Program Counter
+
                     if (interrupt_change = '1') then
 
-                        ctrl_bus(INT_REQ_B) <= '1';
+                        ctrl_bus(I_INT_REQ) <= '1';
 
                     else
 
-                        ctrl_bus(INT_REQ_B) <= '0';
+                        ctrl_bus(I_INT_REQ) <= '0';
 
                     end if;
 

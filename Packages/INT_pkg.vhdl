@@ -8,9 +8,6 @@ library     IEEE;
 
 package INT_pkg is
 
-    constant INT_RESET_INDEX    : integer   := 0;
-    constant INT_RESET_PRIO     : std_logic_vector(INT_PRIO_BITS - 1 downto 0)   := (others => '0');
-
     type INTERRUPT_T is record
         enable      : std_logic;
         latch       : std_logic;
@@ -20,19 +17,36 @@ package INT_pkg is
 
     type INTERRUPT_TABLE_T is array(NUM_INTERRUPTS - 1 downto 0) of INTERRUPT_T;
 
+
+    constant RESET_INT_INDEX    : integer   := 0;
+    constant RESET_INT_PRIO     : std_logic_vector(INT_PRIO_BITS - 1 downto 0)   := (others => '0');
+    constant RESET_INT  : INTERRUPT_T := (
+        enable          => '1',
+        latch           => '0',
+        priority        => RESET_INT_PRIO,
+        address         => (others => '0')
+    );
+
+    constant NMI_INT_INDEX    : integer   := 1;
+    constant NMI_INT_PRIO     : std_logic_vector(INT_PRIO_BITS - 1 downto 0)   := (0 => '1',others => '0');
+    constant NMI_INT    : INTERRUPT_T := (
+        enable          => '1',
+        latch           => '0',
+        priority        => NMI_INT_PRIO,
+        address         => (1 => '1',others => '0')
+    );
+
+    constant UNIMPL_INT : INTERRUPT_T := (
+        enable      => '0',
+        latch       => '0',
+        priority    => (others => '1'),
+        address     => (others => '0')
+    );
+
     constant INTERRUPT_TABLE : INTERRUPT_TABLE_T := (
-        INT_RESET_INDEX => (
-            enable          => '1',
-            latch           => '0',
-            priority        => INT_RESET_PRIO,
-            address         => (others => '0')
-        ),
-        others => (
-            enable      => '0',
-            latch       => '0',
-            priority    => (others => '0'),
-            address     => (others => '0')
-        )
+        RESET_INT_INDEX => RESET_INT,
+        NMI_INT_INDEX => NMI_INT,
+        others => UNIMPL_INT
     );
 
 end package INT_pkg;

@@ -46,25 +46,27 @@ end Adder;
 
 architecture behaviour of Adder is
 
-    signal carry    	: std_logic_vector(regWidth - 1 downto 0);
-    signal intern_add 	: std_logic_vector(regWidth - 1 downto 1);
+    signal iCarry    	: std_logic_vector(regWidth - 1 downto 0);
+	signal iOut			: std_logic_vector(regWidth - 1 downto 0);
 
 	begin
 
         -- First Full-Adder has to be created outside of Generate-Statement
-        carry(0)    <= (not(inputA(0) xor inputB(0)) and inputA(0)) or ((inputA(0) xor inputB(0)) and carryIn);
+        iOut(0)  <= inputA(0) xor inputB(0) xor carryIn;
+		iCarry(0)	<= ((inputA(0) xor inputB(0)) and carryIn) or
+						(inputA(0) and inputB(0));
 
         Adders : for i in 1 to regWidth - 1 generate
 
             begin
 
-                intern_add(i)   <= inputA(i) xor inputB(i);
-                carry(i)    	<= (not(intern_add(i)) and inputA(i)) or (intern_add(i) and carry(i - 1));
-                aOutput(i)  	<= intern_add(i) xor carry(i-1);
+                iCarry(i)    	<= ((inputA(i) xor inputB(i)) and iCarry(i - 1)) or
+								(inputA(i) and inputB(i));
+                iOut(i)  		<= inputA(i) xor inputB(i) xor iCarry(i - 1);
 
         end generate Adders;
 
-		aCarry		<= carry(regWidth - 1);
-        aOutput(0)  <= (inputA(0) xor inputB(0)) xor carryIn;
+		aCarry		<= iCarry(regWidth - 1);
+		aOutput		<= iOut;
 
 end behaviour;

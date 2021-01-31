@@ -17,7 +17,7 @@ entity ALU is
         ctrl_bus    : inout std_logic_vector(ctrl_bus_width - 1 downto 0);
         data_bus    : inout std_logic_vector(data_bus_width - 1 downto 0);
         -- Status Output Flags -> See CPU_pkg
-        status_out  : out std_logic_vector(NUM_FLAGS - 1 downto 0)
+        status_out  : out std_logic_vector(NUM_FLAGS - 1 downto 0) := (others => '0')
     );
 end ALU;
 

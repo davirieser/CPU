@@ -7,6 +7,15 @@ package CPU_pkg is
 
 	function to_index(vec : std_logic_vector) return integer;
 	function calc_bits(len : integer) return integer;
+	function compare_dont_care(
+		arr1, arr2 : std_logic_vector
+	) return boolean;
+	function checkRDWR(
+		rd,wr : std_logic
+	) return std_logic;
+	function checkHighImp(
+		x : std_logic_vector
+	) return boolean;
 
 	-- Timing ------------------------------------------------------------------
     constant clockFrequency : integer   := 10E3;
@@ -127,9 +136,6 @@ package CPU_pkg is
 	constant WRITE_ENABLE	: std_logic	:= WRITE_BIT;
 
 	-- Type Declarations -------------------------------------------------------
-	-- TODO Memory sollen nit alle gleich gross sein
-	type MEMORY_T is array(0 to (2 ** addr_bus_width)) of std_logic_vector(data_bus_width - 1 downto 0);
-
 	type MEMORY_SPEC_T is record
 		WRITABLE	: std_logic;
 		MEM_START	: std_logic_vector(addr_bus_width - 1 downto 0);
@@ -148,7 +154,7 @@ package CPU_pkg is
 			others => '0'
 		),
 		MEM_END	=> (
-			ROM_ADDR_BITS - 1 downto 0 => '1',
+			ROM_ADDR_BITS downto 0 => '1',
 			others => '0'
 		)
 	);
@@ -159,12 +165,11 @@ package CPU_pkg is
 	constant RAM_MEMORY		: MEMORY_SPEC_T	:= (
 		WRITABLE	=> WRITE_ENABLE,
 		MEM_START 	=> (
-			RAM_ADDR_BITS => '1',
+			ROM_ADDR_BITS => '1',
 			others => '0'
 		),
 		MEM_END	=> (
-			RAM_ADDR_BITS => '1',
-			RAM_ADDR_BITS - 1 downto 0 => '1',
+			RAM_ADDR_BITS + 1 => '1',
 			others => '0'
 		)
 	);
@@ -179,7 +184,8 @@ package CPU_pkg is
 			others => '0'
 		),
 		MEM_END	=> (
-			EXT_MEM_BITS - 1 downto 0 => '1',
+			EXT_MEM_BITS => '1',
+			RAM_ADDR_BITS + 1 => '1',
 			others => '0'
 			)
 	);
@@ -334,5 +340,62 @@ package body CPU_pkg is
 			end case;
 
 	end function calc_bits;
+
+	function compare_dont_care(
+		arr1, arr2 : std_logic_vector
+	)return boolean is
+
+        variable flag : boolean := true;
+
+		begin
+
+	        if ( arr1'length /= arr2'length ) then
+	            ASSERT FALSE
+	            REPORT "Arguments of compare_dont_care are not of the same Length"
+	            SEVERITY FAILURE;
+	        else
+
+				for i in arr1'range loop
+					flag := flag and
+							((arr1(i)='X') or
+							(arr2(i)='X') or
+							(arr1(i) = arr2(i)));
+				end loop;
+
+			end if;
+
+			return flag;
+
+	end function compare_dont_care;
+
+	function checkRDWR(
+		rd,wr : std_logic
+	) return std_logic is
+
+		begin
+
+			if ((wr = '1') and (rd ='Z')) then
+				return WRITE_BIT;
+			else
+				return READ_BIT;
+			end if;
+
+	end function checkRDWR;
+
+	function checkHighImp(
+		x : std_logic_vector
+	) return boolean is
+
+        variable flag : boolean := true;
+
+		begin
+
+			for i in x'range loop
+				flag := flag and ((x(i) = '1') or (x(i) = '0'));
+			end loop;
+
+			return flag;
+
+	end function checkHighImp;
 
 end package body CPU_pkg;

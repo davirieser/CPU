@@ -8,8 +8,8 @@ library ieee;
 entity ProgCounter is
     port(
         clk         : in std_logic;
+        addr_bus    : inout std_logic_vector(addr_bus_width - 1 downto 0);
         ctrl_bus    : inout std_logic_vector(ctrl_bus_width - 1 downto 0);
-        data_bus    : inout std_logic_vector(data_bus_width - 1 downto 0);
         -- Program Counter Overflow
         cnt_overf   : out std_logic
     );
@@ -61,7 +61,7 @@ architecture structure of ProgCounter is
                         -- report "Program Counter Override";
                         -- TODO Andersch machen => Addressen werden nit gscheid auf
                         -- en Daten-Bus gschrieben => Stack Pointer geht nit
-                        prog_count_v := OVR_FILLER & data_bus;
+                        prog_count_v := addr_bus;
                     elsif (ctrl_bus(I_PRC_INCR) = '1') then
                         -- report "Program Counter Increment";
                         prog_count_v := aOutput;
@@ -72,11 +72,9 @@ architecture structure of ProgCounter is
                 -- Output Program Counter
                 if ctrl_bus(I_PRC_OUT) = '1' then
                     -- report "Program Counter Out";
-                    -- TODO Andersch machen => Addressen werden nit gscheid auf
-                    -- en Daten-Bus gschrieben => Stack Pointer geht nit
-                    data_bus <= prog_count_v(addr_bus_width - 1 downto addr_bus_width - data_bus_width );
+                    addr_bus <= prog_count_v(addr_bus_width - 1 downto 0);
                 else
-                    data_bus <= (others => 'Z');
+                    addr_bus <= (others => 'Z');
                 end if;
 
                 prog_count_s <= prog_count_v;

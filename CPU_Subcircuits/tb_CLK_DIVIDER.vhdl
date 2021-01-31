@@ -16,6 +16,7 @@ architecture behaviour of tb_CLK_DIVIDER is
         port(
             reset   : in std_logic;
             clk     : in std_logic;
+	        hold    : in std_logic;
             outp    : out std_logic_vector(NUM_MICRO_CYC - 1 downto 0)
         );
     end component CLK_DIVIDER;
@@ -25,6 +26,7 @@ architecture behaviour of tb_CLK_DIVIDER is
         uut : entity work.CLK_DIVIDER port map(
             reset => '0',
             clk => clk_s,
+			hold => '0',
             outp => outp_s
         );
 

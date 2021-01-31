@@ -61,21 +61,25 @@ architecture behaviour of tb_CPU is
             addr_bus    => addr_bus_intern
         );
 
-		MEM : for i in NUM_MEMORY_DEVICES downto 0 generate
+		addr_bus_intern <= (others => 'Z');
+		data_bus_intern <= (others => 'Z');
+		ext_bus_intern <= (I_CLOCK => cpu_clk, others => 'Z');
+
+		-- TODO Throws Error
+		MEM : for i in NUM_MEMORY_DEVICES - 1 downto 0 generate
 
 			begin
 
 				MEMORIES : entity work.MEMORY
 				generic map(
-					WRITABLE => MEMORY_MAP(i).WRITABLE,
-					MEM_START => MEMORY_MAP(i).MEM_START,
-					MEM_END => MEMORY_MAP(i).MEM_END
+					WRITABLE => MEMORY_MAP(0).WRITABLE,
+					MEM_START => MEMORY_MAP(0).MEM_START,
+					MEM_END => MEMORY_MAP(0).MEM_END
 				)
 				port map(
 					clk => ext_clk,
-					-- TODO ena und rd_wr besser implementieren
-					ena => ext_bus_intern(I_MEM_RD),
-					rd_wr => READ_BIT,
+					ena => ext_bus(I_MEM_RD) or ext_bus(I_MEM_WRI),
+					rd_wr => checkRDWR( ext_bus(I_MEM_RD),ext_bus(I_MEM_WRI)),
 					addr_bus => addr_bus_intern,
 					data_bus => data_bus_intern,
 					data_ready => data_ready

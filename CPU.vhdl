@@ -41,6 +41,7 @@ architecture structure of CPU is
     signal memory_address_r : std_logic_vector(addr_bus_width - 1 downto 0) := (others => '0');
 
     signal instruction_reg  : std_logic_vector(data_bus_width - 1 downto 0) := (others => '0');
+    signal inst_dec_reg     : std_logic_vector(OPCODE_BITS + NUM_FLAGS - 1 downto 0) := (others => '0');
 
     signal REGS             : REGISTERS := (others => (others => '0'));
     signal ALU_CTRL_REG     : std_logic_vector(ALU_CTRL_WIDTH - 1 downto 0) := (others => '0');
@@ -69,8 +70,8 @@ architecture structure of CPU is
     component ProgCounter is
         port(
             clk         : in std_logic;
+            addr_bus    : inout std_logic_vector(addr_bus_width - 1 downto 0);
             ctrl_bus    : inout std_logic_vector(ctrl_bus_width - 1 downto 0);
-            data_bus    : inout std_logic_vector(data_bus_width - 1 downto 0);
             -- Program Counter Overflow
             cnt_overf   : out std_logic
         );
@@ -78,7 +79,7 @@ architecture structure of CPU is
 
     component INST_DEC is
         port(
-            inst        : in std_logic_vector(OPCODE_BITS - 1 downto 0);
+            inst        : in std_logic_vector(OPCODE_BITS + NUM_FLAGS - 1 downto 0);
             flags_in    : in std_logic_vector(NUM_FLAGS - 1 downto 0);
             micro_cyc   : in std_logic_vector(NUM_MICRO_CYC - 1 downto 0);
             alu_ctrl    : out std_logic_vector(ALU_CTRL_WIDTH - 1 downto 0);
@@ -117,8 +118,12 @@ architecture structure of CPU is
             status_out  => status_registers
         );
 
+        inst_dec_reg <=
+            instruction_reg(data_bus_width - 1 downto data_bus_width - OPCODE_BITS)
+            & status_registers;
+
         inst_dec_ins : entity work.INST_DEC port map(
-            inst        => instruction_reg(data_bus_width - 1 downto data_bus_width - OPCODE_BITS),
+            inst        => inst_dec_reg,
             flags_in    => ALU_OUT_FLAGS,
             micro_cyc   => clk_divs(NUM_MICRO_CYC downto 1),
             alu_ctrl    => ALU_CTRL_REG,
@@ -134,8 +139,8 @@ architecture structure of CPU is
 
         prog_count_ins : entity work.ProgCounter port map(
             clk      => master_clk,
+            addr_bus => addr_bus_intern,
             ctrl_bus => ctrl_bus_intern,
-            data_bus => data_bus_intern,
             -- Program Counter Overflow
             cnt_overf => prog_cnt_ovf_reg
         );
@@ -245,8 +250,9 @@ architecture structure of CPU is
                     internal_hold <= '1';
                 elsif (
                     (ctrl_bus_intern(I_WF_MEM_RD) = '1') and
-                    ((not ext_bus(I_MEM_RD_READY)) = '1')
+                    (not (ext_bus(I_MEM_RD_READY) = '1'))
                 ) then
+                    report "Waiting for Extern Memory";
                     internal_hold <= '1';
                 elsif (ext_bus(I_DMA_HOLD) = '1') then
                     internal_hold <= '1';
