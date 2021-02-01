@@ -48,22 +48,14 @@ architecture structure of ProgCounter is
 
             begin
 
-                -- report "Program Counter Operation";
-
                 cnt_overf <= '0';
-                -- prog_count_v := std_logic_vector(unsigned(prog_count_s) + 1);
 
                 if (ctrl_bus(I_RESET) = '1') then
-                    -- report "Program Counter Reset";
                     prog_count_v := (others => '0');
                 else
                     if (ctrl_bus(I_PRC_IN) = '1') then
-                        -- report "Program Counter Override";
-                        -- TODO Andersch machen => Addressen werden nit gscheid auf
-                        -- en Daten-Bus gschrieben => Stack Pointer geht nit
                         prog_count_v := addr_bus;
                     elsif (ctrl_bus(I_PRC_INCR) = '1') then
-                        -- report "Program Counter Increment";
                         prog_count_v := aOutput;
                         cnt_overf <= carries(addr_bus_width - 1);
                     end if;
@@ -71,7 +63,6 @@ architecture structure of ProgCounter is
 
                 -- Output Program Counter
                 if ctrl_bus(I_PRC_OUT) = '1' then
-                    -- report "Program Counter Out";
                     addr_bus <= prog_count_v(addr_bus_width - 1 downto 0);
                 else
                     addr_bus <= (others => 'Z');
@@ -80,5 +71,30 @@ architecture structure of ProgCounter is
                 prog_count_s <= prog_count_v;
 
         end process Counter;
+
+        debug : process(ctrl_bus)
+
+            begin
+
+                if (PROG_CNT_DEBUG) then
+
+                    if (ctrl_bus(I_RESET) = '1') then
+                        report "Program Counter Reset";
+                    else
+                        if (ctrl_bus(I_PRC_IN) = '1') then
+                            report "Program Counter Override";
+                        elsif (ctrl_bus(I_PRC_INCR) = '1') then
+                            report "Program Counter Increment";
+                        end if;
+                    end if;
+
+                    -- Output Program Counter
+                    if ctrl_bus(I_PRC_OUT) = '1' then
+                        report "Program Counter Out : " & integer'image(to_index(prog_count_s));
+                    end if;
+
+                end if;
+
+        end process debug;
 
 end structure;

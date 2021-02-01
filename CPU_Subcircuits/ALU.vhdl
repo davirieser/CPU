@@ -162,7 +162,7 @@ architecture behaviour of ALU is
 
         end process parity_gen;
 
-        output_gen : process(ctrl,ctrl_bus,operand1,operand2)
+        output_gen : process(ctrl_bus)
 
             begin
 
@@ -205,9 +205,7 @@ architecture behaviour of ALU is
                     -- end case;
 
                 else
-
                     int_result <= (others => 'Z');
-
                 end if;
 
                 if (ctrl_bus(I_ALU_FLAG) = '1') then
@@ -219,5 +217,48 @@ architecture behaviour of ALU is
         end process output_gen;
 
         data_bus <= int_result;
+
+        debug : process(ctrl_bus)
+
+            begin
+
+                if (ALU_DEBUG) then
+
+                    if (ctrl_bus(I_ALU_RSO) = '1') then
+
+                        if (ctrl = AND_CODE) then
+                            report "ALU outputting AND-Result";
+                        elsif (ctrl = OR_CODE) then
+                            report "ALU outputting OR-Result";
+                        elsif (ctrl = XOR_CODE) then
+                            report "ALU outputting XOR-Result";
+                        elsif (ctrl = NOT_A_CODE) then
+                            report "ALU outputting NOT-A-Result";
+                        elsif (ctrl = NOT_B_CODE) then
+                            report "ALU outputting NOT-B-Result";
+                        elsif (ctrl = ADD_CODE) then
+                            report "ALU outputting Addition-Result";
+                        elsif (ctrl = SUB_CODE) then
+                            report "ALU outputting Subtraction-Result";
+                        elsif (ctrl = SHIFT_CODE) then
+                            report "ALU outputting Shift-Result";
+                        elsif (ctrl = PARITY_CODE) then
+                            report "ALU outputting Parity-Result";
+                        else
+                            report "Unknown ALU-Operation";
+                        end if;
+                    else
+                        report "ALU in IDLE-State";
+                    end if;
+
+                    if (ctrl_bus(I_ALU_FLAG) = '1') then
+                        report "Outputting ALU-Flags";
+                    elsif (ctrl_bus(I_ALU_F_CLR) = '1') then
+                        report "Clearing ALU-Flags";
+                    end if;
+
+                end if;
+
+        end process debug;
 
 end behaviour;

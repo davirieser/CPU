@@ -103,7 +103,8 @@ package INST_DEC_pkg is
 	);
 	----------------------------------------------------------------------------
 
-	constant NO_INST	: INSTRUCTION_T := (
+	-- Ignore Instruction => doesn't change anything
+	constant IGN_INST	: INSTRUCTION_T := (
 		INST_ID => (others => 'U'),
 		INST_CODES => (others => (others => 'Z')),
 		EXT_CODES => (others => (others => 'Z')),
@@ -116,7 +117,7 @@ package INST_DEC_pkg is
 	-- Instruction ID's cannot overlap
 	constant INST_SET : INSTRUCTION_SET_T := (
 		0 => NOP_INSTRUCTION,
-		others => NO_INST
+		others => IGN_INST
 	);
 
 end package INST_DEC_pkg;

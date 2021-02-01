@@ -124,7 +124,7 @@ architecture behaviour of tb_MEMORY is
 
 				wait for ((2 ** (MEMORY_ADDR_BITS - 1)) + 5) * base_clock;
 
-                addr_bus <= (3 => '1',others => '0');
+                addr_bus <= (2 => '1',others => '0');
                 ext_bus(I_MEM_RD) <= '1';
 
 				wait for base_clock;

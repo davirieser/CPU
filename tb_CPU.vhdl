@@ -33,17 +33,16 @@ architecture behaviour of tb_CPU is
 
 	component MEMORY is
 	    generic(
-	        WRITABLE : std_logic := WRITE_ENABLE;
+	        WRITABLE    : std_logic := WRITE_ENABLE;
+	        MEM_BITS    : integer;
 	        MEM_START   : std_logic_vector(addr_bus_width - 1 downto 0) := (others => '1');
-	        MEM_END : std_logic_vector(addr_bus_width - 1 downto 0) := (others => '1')
+	        MEM_END     : std_logic_vector(addr_bus_width - 1 downto 0) := (others => '1')
 	    );
 	    port(
 	        -- Clock Input
 	        clk         : in std_logic;
-	        -- Enable Input -> Tells the Memory if it should take Action
-	        ena         : in std_logic;
-	        -- Read/Write Input : Only for Writable Memories
-	        rd_wr       : in std_logic;
+	        -- Control Bus
+	        ext_bus     : inout std_logic_vector(ext_bus_width - 1 downto 0);
 	        -- Address Input -> The Address which is to be read
 	        addr_bus    : inout std_logic_vector(addr_bus_width - 1 downto 0);
 	        -- Data In/Output -> Connected to Data-Bus
@@ -72,14 +71,14 @@ architecture behaviour of tb_CPU is
 
 				MEMORIES : entity work.MEMORY
 				generic map(
-					WRITABLE => MEMORY_MAP(0).WRITABLE,
-					MEM_START => MEMORY_MAP(0).MEM_START,
-					MEM_END => MEMORY_MAP(0).MEM_END
+					WRITABLE => MEMORY_MAP(i).WRITABLE,
+					MEM_BITS => MEMORY_MAP(i).MEM_BITS,
+					MEM_START => MEMORY_MAP(i).MEM_START,
+					MEM_END => MEMORY_MAP(i).MEM_END
 				)
 				port map(
 					clk => ext_clk,
-					ena => ext_bus(I_MEM_RD) or ext_bus(I_MEM_WRI),
-					rd_wr => checkRDWR( ext_bus(I_MEM_RD),ext_bus(I_MEM_WRI)),
+					ext_bus => ext_bus_intern,
 					addr_bus => addr_bus_intern,
 					data_bus => data_bus_intern,
 					data_ready => data_ready

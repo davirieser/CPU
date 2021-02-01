@@ -72,8 +72,6 @@ architecture behaviour of MEMORY is
 
                     -- TODO First Write doesn't work
 
-                    report "Memory Read at Address " & integer'image(to_index(addr_bus));
-
                     mem_active <= (over_addr and (not under_addr));
 
                     if ((ext_bus(I_MEM_WRI) = '1') and
@@ -91,19 +89,20 @@ architecture behaviour of MEMORY is
                     if ((ena = '1') and (mem_active = '1')) then
                         if (rd_wr = READ_BIT) then
                             if (to_index(addr_corr) <= (2 ** MEM_BITS)) then
-                                report "Memory Out at Address";
                                 data_bus <= internal_memory(to_index(addr_corr));
                                 data_ready <= '1';
-                            else
-                                report "Memory out of range during Read";
                             end if;
                         elsif ((rd_wr = WRITE_BIT) and (WRITABLE = WRITE_ENABLE)) then
                             if (to_index(addr_corr) <= (2 ** MEM_BITS)) then
-                                report "Memory Write at Address";
+                                if (MEMORY_DEBUG) then
+                                    report "Memory Write at Address " & integer'image(to_index(addr_bus));
+                                end if;
                                 data_ready <= 'Z';
                                 internal_memory(to_index(addr_corr)) <= data_bus;
                             else
-                                report "Memory out of range during Write";
+                                if (MEMORY_DEBUG) then
+                                    report "Memory out of range during Write at Address " & integer'image(to_index(addr_bus));
+                                end if;
                             end if;
                         end if;
                     else
@@ -137,13 +136,39 @@ architecture behaviour of MEMORY is
             regWidth    => addr_bus_width
         )
         port map(
-            -- TODO I glab des sollt auf 1 gsetzt sein
-            --      Damit die letzte Addresse nit miteini geht
             carryIn     => '0',
             inputA      => MEM_END,
             inputB      => addr_bus,
             aOutput     => sub2_out,
             aCarry      => over_addr
         );
+
+        debug : process(clk)
+
+            begin
+
+                if (MEMORY_DEBUG) then
+
+                    if (checkHighImp(addr_bus)) then
+
+                        if ((ena = '1') and (mem_active = '1')) then
+                            if (rd_wr = READ_BIT) then
+                                if (to_index(addr_corr) <= (2 ** MEM_BITS)) then
+                                    report "Memory Read at Address " & integer'image(to_index(addr_bus));
+                                else
+                                    report "Memory out of range during Read at Address " & integer'image(to_index(addr_bus));
+                                end if;
+                            elsif ((rd_wr = WRITE_BIT) and (WRITABLE = WRITE_ENABLE)) then
+                                if (to_index(addr_corr) <= (2 ** MEM_BITS)) then
+                                    report "Memory Write at Address " & integer'image(to_index(addr_bus));
+                                else
+                                    report "Memory out of range during Write at Address " & integer'image(to_index(addr_bus));
+                                end if;
+                            end if;
+                        end if;
+                    end if;
+                end if;
+
+        end process debug;
 
 end behaviour;

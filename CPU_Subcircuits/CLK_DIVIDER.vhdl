@@ -62,4 +62,30 @@ architecture structure of CLK_DIVIDER is
 
         outp <= vector;
 
+        debug : process(clk)
+
+            begin
+
+                if (CLK_DIV_DEBUG) then
+
+                    if ((falling_edge(clk) or rising_edge(clk))) then
+
+                        if (not (hold = '1')) then
+
+                            if ((reset = '1') and (reset_cycle = '0')) then
+                                report "Program Counter resetting";
+                            else
+                                report "Program Counter next Cycle : " & integer'image(to_index(next_vector));
+                            end if;
+
+                        else
+                            report "Program Counter holding";
+                        end if;
+
+                    end if;
+
+                end if;
+
+        end process debug;
+
 end structure;

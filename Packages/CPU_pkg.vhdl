@@ -138,6 +138,7 @@ package CPU_pkg is
 	-- Type Declarations -------------------------------------------------------
 	type MEMORY_SPEC_T is record
 		WRITABLE	: std_logic;
+		MEM_BITS	: integer;
 		MEM_START	: std_logic_vector(addr_bus_width - 1 downto 0);
 		MEM_END		: std_logic_vector(addr_bus_width - 1 downto 0);
 	end record MEMORY_SPEC_T;
@@ -150,6 +151,7 @@ package CPU_pkg is
 	constant ROM_MEM_INDEX	: integer	:= 0;
 	constant ROM_MEMORY		: MEMORY_SPEC_T	:= (
 		WRITABLE	=> READ_ENABLE,
+		MEM_BITS	=> ROM_ADDR_BITS,
 		MEM_START 	=> (
 			others => '0'
 		),
@@ -164,6 +166,7 @@ package CPU_pkg is
 	constant RAM_MEM_INDEX	: integer	:= 1;
 	constant RAM_MEMORY		: MEMORY_SPEC_T	:= (
 		WRITABLE	=> WRITE_ENABLE,
+		MEM_BITS	=> RAM_ADDR_BITS,
 		MEM_START 	=> (
 			ROM_ADDR_BITS => '1',
 			others => '0'
@@ -179,6 +182,7 @@ package CPU_pkg is
 	constant EXT_MEM_INDEX	: integer	:= 2;
 	constant EXT_MEMORY		: MEMORY_SPEC_T	:= (
 		WRITABLE	=> WRITE_ENABLE,
+		MEM_BITS	=> EXT_MEM_BITS,
 		MEM_START 	=> (
 			RAM_ADDR_BITS + 1 => '1',
 			others => '0'
@@ -286,6 +290,17 @@ package CPU_pkg is
 	constant EVEN_FLAG		: integer	:= 3;
 	constant ODD_FLAG		: integer	:= 4;
 	constant SIGN_FLAG		: integer	:= 5;
+	----------------------------------------------------------------------------
+	-- Debug Flags -------------------------------------------------------------
+	----------------------------------------------------------------------------
+
+	constant PROG_CNT_DEBUG	: boolean	:= false;
+	constant ALU_DEBUG		: boolean	:= false;
+	constant CPU_DEBUG		: boolean	:= false;
+	constant MEMORY_DEBUG	: boolean	:= false;
+	constant INST_DEC_DEBUG	: boolean	:= false;
+	constant NVIC_DEBUG		: boolean	:= false;
+	constant CLK_DIV_DEBUG	: boolean	:= false;
 	----------------------------------------------------------------------------
 
 end package CPU_pkg;

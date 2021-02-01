@@ -57,6 +57,26 @@ architecture behaviour of INST_DEC is
 
         end process p_decoding;
 
+        debug : process (micro_cyc)
+
+            begin
+
+                if (INST_DEC_DEBUG) then
+
+                    for i in NUM_OPCODES - 1 downto 0 loop
+
+                        if (compare_dont_care(INST_SET(i).INST_ID,inst)) then
+
+                            report "Instruction : " & integer'image(to_index(inst));
+
+                        end if;
+
+                    end loop;
+
+                end if;
+
+        end process debug;
+
 end behaviour;
 
                 -- if (inst = NOP_INST) then
