@@ -67,7 +67,7 @@ architecture behaviour of INST_DEC is
 
                         if (compare_dont_care(INST_SET(i).INST_ID,inst)) then
 
-                            report "Instruction : " & integer'image(to_index(inst));
+                            report "Instruction : " & INST_NAMES(to_index(inst));
 
                         end if;
 

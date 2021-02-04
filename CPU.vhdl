@@ -182,12 +182,13 @@ architecture structure of CPU is
                     addr_bus_intern <= (others => 'Z');
                 end if;
                 -- TODO Memory Address Register In
-                -- if (ctrl_bus_intern(MEM_ARI_B) = '1') then
-                --     -- report "MEM Address In";
-                --     memory_address_r <= data_bus_intern & (addr_bus_width - data_bus_width - 1 downto 0 => '0');
-                -- else
-                --     memory_address_r <= memory_address_r;
-                -- end if;
+                if (ctrl_bus_intern(I_MEM_ARI_L) = '1') then
+                    memory_address_r <= addr_bus_intern;
+                elsif (ctrl_bus_intern(I_MEM_ARI_H) = '1') then
+                    memory_address_r <= addr_bus_intern;
+                else
+                    memory_address_r <= memory_address_r;
+                end if;
 
                 -- Instruction Register Control
                 if (ctrl_bus_intern(I_INST_R_OUT) = '1') then
@@ -252,7 +253,6 @@ architecture structure of CPU is
                     (ctrl_bus_intern(I_WF_MEM_RD) = '1') and
                     (not (ext_bus(I_MEM_RD_READY) = '1'))
                 ) then
-                    report "Waiting for Extern Memory";
                     internal_hold <= '1';
                 elsif (ext_bus(I_DMA_HOLD) = '1') then
                     internal_hold <= '1';
@@ -261,5 +261,91 @@ architecture structure of CPU is
                 end if;
 
         end process p_hold_gen;
+
+        -- ---------------------------------------------------------------------
+        -- Debug-Process -------------------------------------------------------
+        -- ---------------------------------------------------------------------
+
+        p_debug : process(ext_bus)
+
+            begin
+
+                if (CPU_DEBUG) then
+
+                    if (ext_bus(I_WAIT) = '1') then
+                        report "Waiting";
+                        internal_hold <= '1';
+                    elsif (
+                        (ctrl_bus_intern(I_WF_MEM_RD) = '1') and
+                        (not (ext_bus(I_MEM_RD_READY) = '1'))
+                    ) then
+                        report "Waiting for Extern Memory";
+                    elsif (ext_bus(I_DMA_HOLD) = '1') then
+                        report "Waiting for DMA";
+                        internal_hold <= '1';
+                    else
+                        internal_hold <= '0';
+                    end if;
+
+                    -- Stack Pointer Control
+                    if (ctrl_bus_intern(I_SP_INC) = '1') then
+                        report "Overriding Stack Pointer";
+                    end if;
+                    if (ctrl_bus_intern(I_SP_DEC) = '1') then
+                        report "Decreasing Stack Pointer";
+                    end if;
+                    if (ctrl_bus_intern(I_SP_OUT) = '1') then
+                        report "Outputting Stack Pointer";
+                    end if;
+
+                    -- Register Control
+                    if (ctrl_bus_intern(I_REG_AOU) = '1') then
+                        report "Outputting Register A";
+                    end if;
+                    if (ctrl_bus_intern(I_REG_AIN) = '1') then
+                        report "Overriding Register A";
+                    end if;
+                    if (ctrl_bus_intern(I_REG_BOU) = '1') then
+                        report "Outputting Register B";
+                    end if;
+                    if (ctrl_bus_intern(I_REG_BIN) = '1') then
+                        report "Overriding Register B";
+                    end if;
+                    -- Memory Register Control
+                    if (ctrl_bus_intern(I_MEM_ARO) = '1') then
+                        report "Outputting Memory-Address-Register";
+                    end if;
+                    if (ctrl_bus_intern(I_MEM_ARI_L) = '1') then
+                        report "Overriding Low Memory Register Bits";
+                    end if;
+                    if (ctrl_bus_intern(I_MEM_ARI_H) = '1') then
+                        report "Overriding High Memory Register Bits";
+                    end if;
+
+                    -- Instruction Register Control
+                    if (ctrl_bus_intern(I_INST_R_OUT) = '1') then
+                        report "Outputting Instruction-Register";
+                    end if;
+                    if (ctrl_bus_intern(I_INST_R_IN) = '1') then
+                        report "Overriding Instruction-Register";
+                    end if;
+
+                    -- Register Swap Control
+                    if (ctrl_bus_intern(I_SWP_REG) = '1') then
+                        report "Swapping Registers";
+                    end if;
+
+                    -- Status Flag Control
+                    if (ctrl_bus_intern(I_STF_OUT) = '1') then
+                        report "Outputting Status Registers";
+                    elsif (ctrl_bus_intern(I_STF_IN) = '1') then
+                        report "Overriding Status Registers";
+                    elsif (ctrl_bus_intern(I_CLR_STF) = '1') then
+                        report "Clearing Status Registers";
+                    end if;
+
+                end if;
+
+        end process p_debug;
 
 end structure;

@@ -66,8 +66,8 @@ package CPU_pkg is
 	-- Bit 7 => Stack Pointer Decrement
 	-- Bit 8 => Stack Pointer Initialize
 	-- Bit 9 => Stack Pointer Out
-	-- Bit 10 => Memory Address Register Low In
-	-- Bit 11 => Memory Address Register Low In
+	-- Bit 10 => Memory Address Register Low-Bits In
+	-- Bit 11 => Memory Address Register High-Bits In
 	-- Bit 12 => Memory Address Register Out
 	-- Bit 13 => ALU Result Out // TODO
 	-- Bit 14 => ALU Flags Out // TODO
@@ -290,17 +290,17 @@ package CPU_pkg is
 	constant EVEN_FLAG		: integer	:= 3;
 	constant ODD_FLAG		: integer	:= 4;
 	constant SIGN_FLAG		: integer	:= 5;
+
 	----------------------------------------------------------------------------
 	-- Debug Flags -------------------------------------------------------------
 	----------------------------------------------------------------------------
-
-	constant PROG_CNT_DEBUG	: boolean	:= false;
 	constant ALU_DEBUG		: boolean	:= false;
-	constant CPU_DEBUG		: boolean	:= false;
-	constant MEMORY_DEBUG	: boolean	:= false;
-	constant INST_DEC_DEBUG	: boolean	:= false;
-	constant NVIC_DEBUG		: boolean	:= false;
 	constant CLK_DIV_DEBUG	: boolean	:= false;
+	constant CPU_DEBUG		: boolean	:= false;
+	constant INST_DEC_DEBUG	: boolean	:= false;
+	constant MEMORY_DEBUG	: boolean	:= false;
+	constant NVIC_DEBUG		: boolean	:= false;
+	constant PROG_CNT_DEBUG	: boolean	:= false;
 	----------------------------------------------------------------------------
 
 end package CPU_pkg;

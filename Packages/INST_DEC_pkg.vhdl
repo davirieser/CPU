@@ -62,6 +62,8 @@ package INST_DEC_pkg is
 
 	type INSTRUCTION_SET_T is array(NUM_OPCODES - 1 downto 0) of INSTRUCTION_T;
 	----------------------------------------------------------------------------
+	type INSTRUCTION_SET_NAMES is array(NUM_OPCODES - 1 downto 0) of string(1 to 5);
+	----------------------------------------------------------------------------
 
 	----------------------------------------------------------------------------
 	-- No Operation Vectors
@@ -118,6 +120,10 @@ package INST_DEC_pkg is
 	constant INST_SET : INSTRUCTION_SET_T := (
 		0 => NOP_INSTRUCTION,
 		others => IGN_INST
+	);
+	constant INST_NAMES : INSTRUCTION_SET_NAMES := (
+		0 => "NOP  ",
+		others => "Undef"
 	);
 
 end package INST_DEC_pkg;
