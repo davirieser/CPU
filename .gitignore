@@ -7,5 +7,6 @@
 # Whitelist all File-Types which are interesting to us
 !*.vhd
 !*.vhdl
+!*.py
 !Makefile
 !.gitignore
