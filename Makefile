@@ -1,6 +1,7 @@
 
 VHDL_COMPILER=ghdl
 WAVE_VIEWER=gtkwave
+CC=gcc
 ANALYSIS_OPTIONS=-a
 # --std=93
 ELABORATION_OPTIONS=-e
@@ -17,6 +18,7 @@ TESTBENCH_PREFIX=tb_
 DEST_FOLDER=$(abspath sim)
 WORKING_FOLDER=$(abspath .)
 WORK_LIBRARY=work-obj93.cf
+GHWDUMP_FOLDER=ghwdump
 
 # Include Subdirectories for VHDL-Files
 VPATH=ALU_Subcircuits:CPU_Subcircuits:Packages
@@ -90,6 +92,19 @@ endif
 	@-$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $(notdir $*)
 
 # ------------------------------------------------------------------------------
+# Compile GHW-File-Dumper
+
+ghwdump: $(GHWDUMP_FOLDER)/ghwdump
+
+$(GHWDUMP_FOLDER)/ghwdump: $(GHWDUMP_FOLDER)/ghwdump.o $(GHWDUMP_FOLDER)/ghwlib.o
+	$(CC) -g -O -Wall -o $@ $(GHWDUMP_FOLDER)/ghwdump.o $(GHWDUMP_FOLDER)/ghwlib.o
+
+$(GHWDUMP_FOLDER)/ghwlib.o: $(GHWDUMP_FOLDER)/ghwlib.c $(GHWDUMP_FOLDER)/ghwlib.h
+	$(CC) -c -g -O -Wall -o $@ $<
+$(GHWDUMP_FOLDER)/ghwdump.o: $(GHWDUMP_FOLDER)/ghwdump.c $(GHWDUMP_FOLDER)/ghwlib.h
+	$(CC) -c -g -O -Wall -o $@ $<
+
+# ------------------------------------------------------------------------------
 # Clean Command
 
 .PHONY: clean
@@ -101,3 +116,6 @@ ifeq ($(OS),Windows_NT)
 else
 	$(VHDL_COMPILER) clean
 endif
+	-rm -f $(GHWDUMP_FOLDER)/*.o $(GHWDUMP_FOLDER)/ghwdump
+
+# ------------------------------------------------------------------------------

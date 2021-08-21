@@ -8,5 +8,7 @@
 !*.vhd
 !*.vhdl
 !*.py
+!*.c
+!*.h
 !Makefile
 !.gitignore

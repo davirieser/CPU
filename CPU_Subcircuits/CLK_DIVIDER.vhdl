@@ -25,6 +25,7 @@ architecture structure of CLK_DIVIDER is
 
         carry(0)        <= vector(0) and '1';
         next_vector(0)  <= vector(0) xor '1';
+        outp <= vector;
 
         Adders : for i in 1 to NUM_MICRO_CYC - 1 generate
 
@@ -59,8 +60,6 @@ architecture structure of CLK_DIVIDER is
                 end if;
 
         end process counter;
-
-        outp <= vector;
 
         debug : process(clk)
 
