@@ -12,3 +12,8 @@
 !*.h
 !Makefile
 !.gitignore
+
+# Whitelist Github Directory
+!.github/
+!.github/**
+!.github/**/**

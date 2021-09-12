@@ -369,7 +369,6 @@ package body CPU_pkg is
 	            REPORT "Arguments of compare_dont_care are not of the same Length"
 	            SEVERITY FAILURE;
 	        else
-
 				for i in arr1'range loop
 					flag := flag and
 							((arr1(i)='X') or

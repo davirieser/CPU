@@ -44,10 +44,6 @@ endif
 all: \
 	$(patsubst %.vhdl, %, $(wildcard */*_pkg.vhdl) $(wildcard *_pkg.vhdl)) \
 	$(patsubst %.vhdl, %, $(filter-out %_pkg tb_%,$(wildcard */*.vhdl) $(wildcard *.vhdl)))
-ifeq ($(OS),Windows_NT)
-else
-	@ $(MAKE) -s clean
-endif
 
 # ------------------------------------------------------------------------------
 # Analyze all Packages
@@ -77,9 +73,9 @@ $(TESTBENCH_PREFIX)% : $(TESTBENCH_PREFIX)%.$(SOURCE_FILE_EXT)
 		$(dir $*)$(TESTBENCH_PREFIX)$(notdir $*).$(SOURCE_FILE_EXT)
 	-$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $(TESTBENCH_PREFIX)$(notdir $*)
 	@[ -d $(DEST_FOLDER) ] || false
-ifeq ($(SIMULATE),1)
 	-$(VHDL_COMPILER) $(RUN_OPTIONS) $(TESTBENCH_PREFIX)$(notdir $*) \
 		$(SIM_OPTION)=$(subst $(WORKING_FOLDER)/,,$(DEST_FOLDER)/$(notdir $*).$(SIM_EXT))
+ifeq ($(SIMULATE),1)
 	-$(WAVE_VIEWER) $(subst $(WORKING_FOLDER)/,,$(DEST_FOLDER)/$(notdir $*).$(SIM_EXT))
 endif
 
@@ -109,13 +105,9 @@ $(GHWDUMP_FOLDER)/ghwdump.o: $(GHWDUMP_FOLDER)/ghwdump.c $(GHWDUMP_FOLDER)/ghwli
 
 .PHONY: clean
 clean:
-ifeq ($(OS),Windows_NT)
 	-rm -f $(WORK_LIBRARY)
 	-rm -f $(DEST_FOLDER)/*.$(SIM_EXT1)
 	-rm -f $(DEST_FOLDER)/*.$(SIM_EXT2)
-else
-	$(VHDL_COMPILER) clean
-endif
 	-rm -f $(GHWDUMP_FOLDER)/*.o $(GHWDUMP_FOLDER)/ghwdump
 
 # ------------------------------------------------------------------------------
