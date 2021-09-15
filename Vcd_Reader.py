@@ -230,4 +230,5 @@ if __name__ == "__main__":
                 print()
 
     else:
+
         print("Please supply VCD or GHW Files to analyze")

@@ -13,7 +13,6 @@
 !Makefile
 !.gitignore
 
-# Whitelist Github Directory
-!.github/
-!.github/**
-!.github/**/**
+# Whitelist Git Hooks
+!git_hooks/
+!git_hooks/**

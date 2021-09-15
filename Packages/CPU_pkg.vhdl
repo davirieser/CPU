@@ -16,6 +16,9 @@ package CPU_pkg is
 	function checkHighImp(
 		x : std_logic_vector
 	) return boolean;
+	function vector_to_string (
+		a: std_logic_vector
+	) return string;
 
 	-- Timing ------------------------------------------------------------------
     constant clockFrequency : integer   := 10E3;
@@ -309,9 +312,20 @@ package body CPU_pkg is
 
 	function to_index(vec : std_logic_vector) return integer is
 
+		variable is_valid : boolean := true;
+
 		begin
 
-			return to_integer(unsigned(vec));
+		    for i in vec'range loop
+				is_valid := is_valid and ((vec(i)='0') or (vec(i)='1'));
+			end loop;
+
+			if (is_valid) then
+				return to_integer(unsigned(vec));
+			else
+				-- report "Invalid Conversion : " & vector_to_string(vec);
+				return 0;
+			end if;
 
 	end function to_index;
 
@@ -411,5 +425,16 @@ package body CPU_pkg is
 			return flag;
 
 	end function checkHighImp;
+
+	function vector_to_string ( a: std_logic_vector) return string is
+		variable b : string (1 to a'length) := (others => NUL);
+		variable stri : integer := 1;
+		begin
+		    for i in a'range loop
+		        b(stri) := std_logic'image(a((i)))(2);
+		    stri := stri+1;
+		    end loop;
+		return b;
+	end function;
 
 end package body CPU_pkg;

@@ -50,7 +50,6 @@ all: \
 .PHONY: pkg
 pkg: $(patsubst %.vhdl, %, $(wildcard */*_pkg.vhdl) $(wildcard *_pkg.vhdl))
 
-
 # ------------------------------------------------------------------------------
 # Analyze Package
 %$(PACKAGE_SUFFIX) : %$(PACKAGE_SUFFIX).$(SOURCE_FILE_EXT)

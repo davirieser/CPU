@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Removing Windows Carriage Returns which are incompatible with Bash
+sed -i 's/\r//g' $0
+sed -i 's/\r//g' Simulation_Tester.py
+
+echo -e "Running Pre-Commit-Tests\n";
+
+# Compile VHDL
+if make | python3.8 Simulation_Tester.py; then
+    echo -e "\nPre-Commit-Tests successful\n"
+    exit 0
+else
+    echo -e "\nPre-Commit-Tests failed\n"
+    exit 1
+fi
