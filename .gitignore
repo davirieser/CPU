@@ -16,3 +16,6 @@
 # Whitelist Git Hooks
 !git_hooks/
 !git_hooks/**
+
+# Whitelist ReadMe
+!README.md

@@ -7,7 +7,7 @@ sed -i 's/\r//g' Simulation_Tester.py
 echo -e "Running Pre-Commit-Tests\n";
 
 # Compile VHDL
-if make | python3.8 Simulation_Tester.py; then
+if make | python3 Simulation_Tester.py; then
     echo -e "\nPre-Commit-Tests successful\n"
     exit 0
 else
