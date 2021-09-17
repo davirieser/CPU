@@ -19,6 +19,7 @@ DEST_FOLDER=$(abspath sim)
 WORKING_FOLDER=$(abspath .)
 WORK_LIBRARY=work-obj93.cf
 GHWDUMP_FOLDER=ghwdump
+BUILDDIR=build/
 
 # Include Subdirectories for VHDL-Files
 VPATH=ALU_Subcircuits:CPU_Subcircuits:Packages
@@ -54,7 +55,8 @@ pkg: $(patsubst %.vhdl, %, $(wildcard */*_pkg.vhdl) $(wildcard *_pkg.vhdl))
 # Analyze Package
 %$(PACKAGE_SUFFIX) : %$(PACKAGE_SUFFIX).$(SOURCE_FILE_EXT)
 	@echo "Analyzing Package-File $*$(PACKAGE_SUFFIX).$(SOURCE_FILE_EXT)"
-	@-$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $*$(PACKAGE_SUFFIX).$(SOURCE_FILE_EXT)
+	@-$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $*$(PACKAGE_SUFFIX).$(SOURCE_FILE_EXT) \
+		|| echo "Error analyzing Package: $*"
 
 # ------------------------------------------------------------------------------
 # Ignore Testbenches => Will be called by their respective Test-File
@@ -65,15 +67,20 @@ $(TESTBENCH_PREFIX)% : $(TESTBENCH_PREFIX)%.$(SOURCE_FILE_EXT)
 # Rule for VHDL-Files which also have a Testbench
 % : %.$(SOURCE_FILE_EXT) $(TESTBENCH_PREFIX)%.$(SOURCE_FILE_EXT)
 	@echo "Analyzing and elobarating $*"
-	-$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $*.$(SOURCE_FILE_EXT)
-	-$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $(notdir $*)
+	@-$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $*.$(SOURCE_FILE_EXT) \
+		|| echo "Analysation Error in $*"
+	@-$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $(notdir $*) \
+		|| echo "Elaboration Error in $*"
 	@echo "Running Simulation for $*"
-	-$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) \
-		$(dir $*)$(TESTBENCH_PREFIX)$(notdir $*).$(SOURCE_FILE_EXT)
-	-$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $(TESTBENCH_PREFIX)$(notdir $*)
+	@-$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) \
+		$(dir $*)$(TESTBENCH_PREFIX)$(notdir $*).$(SOURCE_FILE_EXT) \
+		|| echo "Analysation Error in $*-Testbench"
+	@-$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $(TESTBENCH_PREFIX)$(notdir $*) \
+		|| echo "Elaboration Error in $*-Testbench"
 	@[ -d $(DEST_FOLDER) ] || false
-	-$(VHDL_COMPILER) $(RUN_OPTIONS) $(TESTBENCH_PREFIX)$(notdir $*) \
-		$(SIM_OPTION)=$(subst $(WORKING_FOLDER)/,,$(DEST_FOLDER)/$(notdir $*).$(SIM_EXT))
+	@-$(VHDL_COMPILER) $(RUN_OPTIONS) $(TESTBENCH_PREFIX)$(notdir $*) \
+		$(SIM_OPTION)=$(subst $(WORKING_FOLDER)/,,$(DEST_FOLDER)/$(notdir $*).$(SIM_EXT)) \
+		|| echo "Error while running: $*"
 ifeq ($(SIMULATE),1)
 	-$(WAVE_VIEWER) $(subst $(WORKING_FOLDER)/,,$(DEST_FOLDER)/$(notdir $*).$(SIM_EXT))
 endif
@@ -83,8 +90,10 @@ endif
 
 % : %.$(SOURCE_FILE_EXT)
 	@echo "Analyzing and elobarating $*"
-	@-$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $*.$(SOURCE_FILE_EXT)
-	@-$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $(notdir $*)
+	@-$(VHDL_COMPILER) $(ANALYSIS_OPTIONS) $*.$(SOURCE_FILE_EXT) \
+		|| echo "Analysation Error in $*"
+	@-$(VHDL_COMPILER) $(ELABORATION_OPTIONS) $(notdir $*) \
+		|| echo "Elaboration Error in $*"
 
 # ------------------------------------------------------------------------------
 # Compile GHW-File-Dumper
@@ -104,9 +113,13 @@ $(GHWDUMP_FOLDER)/ghwdump.o: $(GHWDUMP_FOLDER)/ghwdump.c $(GHWDUMP_FOLDER)/ghwli
 
 .PHONY: clean
 clean:
-	-rm -f $(WORK_LIBRARY)
-	-rm -f $(DEST_FOLDER)/*.$(SIM_EXT1)
-	-rm -f $(DEST_FOLDER)/*.$(SIM_EXT2)
-	-rm -f $(GHWDUMP_FOLDER)/*.o $(GHWDUMP_FOLDER)/ghwdump
+	@-rm -f $(WORK_LIBRARY)
+	@-rm -f $(DEST_FOLDER)/*.$(SIM_EXT1)
+	@-rm -f $(DEST_FOLDER)/*.$(SIM_EXT2)
+	@-rm -f $(GHWDUMP_FOLDER)/*.o $(GHWDUMP_FOLDER)/ghwdump
+	@-rm -f $(BUILDDIR)*
+	@-rm -f *.o
+	@-rm -f *.lst
+	@-find . -type f -regex "./[a-z_]+" -delete
 
 # ------------------------------------------------------------------------------

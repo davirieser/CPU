@@ -6,11 +6,11 @@ sed -i 's/\r//g' Simulation_Tester.py
 
 echo -e "Running Pre-Commit-Tests\n";
 
-# Compile VHDL
-if make | python3 Simulation_Tester.py; then
-    echo -e "\nPre-Commit-Tests successful\n"
+# Compile VHDL (and suppress Stderr)
+if make 2> /dev/null | python3 Simulation_Tester.py; then
+    echo -e "\nPre-Commit-Tests successful"
     exit 0
 else
-    echo -e "\nPre-Commit-Tests failed\n"
+    echo -e "\nPre-Commit-Tests failed\nPlease recompile all Files above and try again"
     exit 1
 fi

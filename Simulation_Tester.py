@@ -1,11 +1,12 @@
 #!/bin/python3
 
+import sys
+
 try:
-    import sys
     from termcolor import colored, cprint
 except:
     print("Please make sure termcolor is installed")
-    exit()
+    sys.exit(1)
 
 silent = True
 
@@ -71,18 +72,21 @@ if __name__ == "__main__":
                     multiline = ""
 
                     handler_found = True
+                    break
                 else:
                     multiline = line[:-1]
-                break
+                    break
 
-        if ((not not multiline) or handler_found):
-            continue
+        if (line != ""):
 
-        if (current_file):
-            cprint(f"Error occured in <{current_file}> : \n{line}\n", "red")
-        else:
-            cprint(f"Unknown Error: {line}")
-        error = True
+            if ((not not multiline) or handler_found):
+                continue
+
+            if (current_file):
+                cprint(f"Error occured in <{current_file}> : \n{line}\n", "red")
+            else:
+                cprint(f"Unknown Error: {line}")
+            error = True
 
     if (error):
         sys.exit(1)
