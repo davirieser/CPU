@@ -19,3 +19,11 @@
 
 # Whitelist ReadMe
 !README.md
+
+# Whitelist Rust-CPU
+!rust/
+!rust/*
+!rust/**/*
+
+# Ignore generated Files
+rust/target
