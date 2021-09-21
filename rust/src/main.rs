@@ -1,9 +1,15 @@
+#![allow(unused, dead_code, non_snake_case)]
 
 use bitflags::bitflags;
 
-#[derive(debug)]
+mod helper;
+use crate::helper::{
+    point::{Path, Point},
+    traits::{Component, ToSvg},
+};
+
 bitflags! {
-    struct ALU_CTRL : u32 {
+    struct AluCtrl : u32 {
         const AND = 0x1;
         const OR = 0x2;
         const XOR = 0x4;
@@ -16,18 +22,16 @@ bitflags! {
     }
 }
 
-#[derive(debug)]
 bitflags! {
-    struct ALU_FLAGS : u32 {
+    struct AluFlags : u32 {
         const CYC_BUFFER = 0x1;
         const REL_JUMPS = 0x2;
         const CARRY_IN = 0x04;
     }
 }
 
-#[derive(debug)]
 bitflags! {
-    struct ALU_STATUS : u32 {
+    struct AluStatus : u32 {
         const CARRY_OUT = 0x1;
         const ZERO = 0x2;
         const OVERFLOW = 0x04;
@@ -37,44 +41,42 @@ bitflags! {
     }
 }
 
-fn ALU (
-    ctrl : &ALU_CTRL,
-    flags : &ALU_FLAGS,
-    op1 : &u32,
-    op2 : &u32,
-    ctrl_bus : &mut CTRL_BUS,
-    data_bus : &mut DATA_BUS,
-    status_out : ALU_STATUS
+fn Alu(
+    ctrl: &AluCtrl,
+    flags: &AluFlags,
+    op1: &usize,
+    op2: &usize,
+    ctrl_bus: &mut CtrlBus,
+    data_bus: &mut DataBus,
+    status_out: AluStatus,
 ) {
+    let result: usize;
 
-    match ctrl {
-        ALU_CTRL::ADD => {
-            return (op1 + op2) & ((1 << 24) - 1)
-        },
+    match *ctrl {
+        AluCtrl::ADD => result = (op1 + op2) & ((1 << 24) - 1),
         _ => {
-            return 0x0;
+            return;
         }
     }
 
+    *data_bus = result;
 }
 
-const REG_WIDTH : usize = 32;
-const BUS_WIDTH : usize = REG_WIDTH;
+const REG_WIDTH: usize = 32;
+const BUS_WIDTH: usize = REG_WIDTH;
 
 #[derive(Copy, Clone)]
+#[allow(unused)]
 enum Logic {
     High,
     Low,
     HighImp,
     DontCare,
-    Unknown
+    Unknown,
 }
 
-// impl Copy for Logic {
-//     fn copy() {
-//         ma
-//     }
-// }
+type CtrlBus = [usize; REG_WIDTH];
+type DataBus = usize;
 
 // TODO Rename
 type BUS = [Logic; BUS_WIDTH];
@@ -107,7 +109,7 @@ impl INOUT for BUS {
 
 struct Bus {
     value: BUS,
-    set: bool
+    set: bool,
 }
 
 impl Bus {
@@ -129,18 +131,14 @@ impl Bus {
     }
 }
 
-fn test(x : &mut u32) {
-
+fn test(x: &mut u32) {
     *x = 10;
-
 }
 
 fn main() {
-
-    let mut x : u32 = 6;
+    let mut x: u32 = 6;
 
     test(&mut x);
 
     print!("{}", x);
-
 }
